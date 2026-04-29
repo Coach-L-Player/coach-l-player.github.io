@@ -1,0 +1,225 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Coach L Player</title>
+
+<style>
+body {
+  margin: 0;
+  background: radial-gradient(circle at top, #1a0033, #000);
+  color: white;
+  font-family: Arial;
+  overflow: hidden;
+}
+
+/* SCREENS */
+.screen {
+  position: absolute;
+  width: 100%;
+  height: calc(100% - 70px);
+  top: 0;
+  left: 0;
+  display: none;
+  justify-content: center;
+  align-items: center;
+  flex-direction: column;
+}
+
+.active {
+  display: flex;
+}
+
+/* HEADER */
+.header {
+  position: absolute;
+  top: 0;
+  width: 100%;
+  padding: 20px;
+  display: flex;
+  justify-content: space-between;
+}
+
+/* DIAL */
+.dial {
+  width: 220px;
+  height: 220px;
+  border-radius: 50%;
+  background: radial-gradient(circle, #222, #000);
+  border: 6px solid #00eaff;
+  box-shadow: 0 0 30px #00eaff;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  transform: rotate(0deg);
+  transition: transform 0.2s linear;
+}
+
+.knob {
+  width: 60px;
+  height: 60px;
+  background: linear-gradient(45deg, #00eaff, #ff00ff);
+  border-radius: 50%;
+}
+
+/* STATION NAME */
+.station {
+  margin-top: 20px;
+  font-size: 18px;
+  color: #00eaff;
+}
+
+/* BOTTOM NAV */
+.nav {
+  position: absolute;
+  bottom: 0;
+  width: 100%;
+  height: 70px;
+  background: #000;
+  display: flex;
+  justify-content: space-around;
+  align-items: center;
+}
+
+.nav span {
+  cursor: pointer;
+}
+
+/* PLAYER */
+.player {
+  position: absolute;
+  bottom: 70px;
+  width: 100%;
+  background: #111;
+  padding: 10px;
+  text-align: center;
+}
+</style>
+</head>
+
+<body>
+
+<!-- RADIO SCREEN -->
+<div id="radio" class="screen active">
+  <div class="header">
+    <div>COACH L PLAYER</div>
+    <div>LOGIN</div>
+  </div>
+
+  <div id="dial" class="dial">
+    <div class="knob"></div>
+  </div>
+
+  <div id="stationName" class="station">BBC Radio 1</div>
+</div>
+
+<!-- PODCAST SCREEN -->
+<div id="podcast" class="screen">
+  <h2>Podcasts</h2>
+  <div id="podcastList"></div>
+</div>
+
+<!-- SETTINGS -->
+<div id="settings" class="screen">
+  <h2>Settings</h2>
+</div>
+
+<!-- PLAYER -->
+<div class="player" onclick="togglePlay()">
+  ▶ Tap to Play / Pause
+</div>
+
+<!-- NAV -->
+<div class="nav">
+  <span onclick="showScreen('radio')">📻</span>
+  <span onclick="showScreen('podcast')">🎧</span>
+  <span onclick="showScreen('settings')">⚙</span>
+</div>
+
+<script>
+const audio = new Audio();
+
+const stations = [
+  {name: "BBC Radio 1", url: "https://stream.live.vc.bbcmedia.co.uk/bbc_radio_one"},
+  {name: "FIP Radio", url: "https://icecast.radiofrance.fr/fip-midfi.mp3"},
+  {name: "Dance Wave", url: "https://dancewave.online/dance.mp3"},
+  {name: "Rock FM", url: "https://stream.revma.ihrhls.com/zc185"},
+];
+
+let currentStation = 0;
+let rotation = 0;
+
+/* SCREEN SWITCH */
+function showScreen(id) {
+  document.querySelectorAll(".screen").forEach(s => s.classList.remove("active"));
+  document.getElementById(id).classList.add("active");
+}
+
+/* PLAY */
+function playStation(index) {
+  const station = stations[index];
+  audio.src = station.url;
+  audio.play();
+  document.getElementById("stationName").innerText = station.name;
+}
+
+/* TOGGLE */
+function togglePlay() {
+  if (!audio.src) {
+    playStation(currentStation);
+    return;
+  }
+
+  if (audio.paused) audio.play();
+  else audio.pause();
+}
+
+/* DIAL CONTROL */
+const dial = document.getElementById("dial");
+
+dial.addEventListener("touchmove", (e) => {
+  e.preventDefault();
+
+  rotation += 5;
+  dial.style.transform = "rotate(" + rotation + "deg)";
+
+  let newStation = Math.floor((rotation / 360) * stations.length) % stations.length;
+
+  if (newStation < 0) newStation = 0;
+
+  if (newStation !== currentStation) {
+    currentStation = newStation;
+    playStation(currentStation);
+  }
+});
+
+/* LOAD PODCASTS */
+async function loadPodcast() {
+  const rss = "https://feeds.simplecast.com/54nAGcIl";
+
+  const res = await fetch("https://api.allorigins.win/raw?url=" + encodeURIComponent(rss));
+  const text = await res.text();
+
+  const parser = new DOMParser();
+  const xml = parser.parseFromString(text, "text/xml");
+
+  let html = "";
+
+  xml.querySelectorAll("item").forEach((item, i) => {
+    if (i > 5) return;
+
+    const title = item.querySelector("title").textContent;
+    const url = item.querySelector("enclosure").getAttribute("url");
+
+    html += `<div onclick="audio.src='${url}'; audio.play();">${title}</div>`;
+  });
+
+  document.getElementById("podcastList").innerHTML = html;
+}
+
+loadPodcast();
+</script>
+
+</body>
+</html>
