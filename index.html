@@ -1,0 +1,883 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0,user-scalable=no">
+<title>Coach L Player</title>
+
+<!-- OG / Social Meta -->
+<meta name="description" content="Coach L Player — Music, Podcasts & Live Radio from Coach L Academy. Stream 24/7 music, Coach L podcasts, and global radio stations.">
+<meta property="og:type" content="website">
+<meta property="og:title" content="Coach L Player">
+<meta property="og:description" content="Stream 24/7 music, Coach L podcasts & live radio — all in one futuristic player.">
+<meta property="og:image" content="https://coachlacademy.github.io/Coach-L-Academy/assets/og-image.png">
+<meta property="og:site_name" content="Coach L Academy">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="Coach L Player">
+<meta name="twitter:description" content="Stream 24/7 music, Coach L podcasts & live radio.">
+<meta name="theme-color" content="#05010e">
+
+<!-- Favicon (inline SVG data URI) -->
+<link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%2305010e'/%3E%3Ccircle cx='32' cy='32' r='22' fill='none' stroke='%2300f5ff' stroke-width='3' opacity='.5'/%3E%3Ccircle cx='32' cy='32' r='10' fill='%2300f5ff' opacity='.8'/%3E%3Ctext x='32' y='56' font-family='monospace' font-size='7' fill='%23ff2d78' text-anchor='middle' font-weight='bold'%3ECOACH L%3C/text%3E%3C/svg%3E">
+
+<link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Share+Tech+Mono&family=Rajdhani:wght@400;500;600;700&display=swap" rel="stylesheet">
+
+<style>
+:root{
+  --bg:#05010e;
+  --cyan:#00f5ff;--mag:#ff2d78;--amb:#ffb800;
+  --grn:#00ff88;--pur:#9b59ff;
+  --txt:#b8d0e8;--dim:#3a5870;--mut:#0d1d2a;
+  --nav-h:60px;--bar-h:62px;
+}
+*{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent;user-select:none}
+input,textarea{user-select:text}
+html,body{width:100%;height:100%;overflow:hidden;background:var(--bg);color:var(--txt);font-family:'Rajdhani',sans-serif}
+body::after{content:'';position:fixed;inset:0;z-index:998;pointer-events:none;
+  background:repeating-linear-gradient(0deg,transparent,transparent 2px,rgba(0,0,0,.04) 2px,rgba(0,0,0,.04) 4px)}
+
+/* ═══ PAGES ═══ */
+#pages{position:fixed;top:0;left:0;right:0;bottom:calc(var(--nav-h)+var(--bar-h));overflow:hidden}
+.page{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;
+  padding:10px 14px 6px;overflow:hidden;
+  transition:transform .36s cubic-bezier(.4,0,.2,1)}
+.page.active{transform:translateX(0)}
+.page.go-left{transform:translateX(-100%)}
+.page.go-right{transform:translateX(100%)}
+#pg-music{background:radial-gradient(ellipse 90% 55% at 50% 0%,#160b3a 0%,var(--bg) 70%)}
+#pg-pod  {background:radial-gradient(ellipse 90% 55% at 50% 0%,#2a0018 0%,var(--bg) 70%)}
+#pg-radio{background:radial-gradient(ellipse 90% 55% at 50% 0%,#201200 0%,var(--bg) 70%)}
+
+/* ═══ HEADER ═══ */
+.ph{width:100%;display:flex;align-items:center;justify-content:space-between;flex-shrink:0;margin-bottom:6px}
+.ph-left .pg-title{font-family:'Orbitron';font-size:.62rem;font-weight:900;letter-spacing:4px;text-transform:uppercase}
+.ph-left .pg-sub{font-family:'Share Tech Mono';font-size:.48rem;color:var(--dim);letter-spacing:3px;margin-top:1px}
+.cc{color:var(--cyan);text-shadow:0 0 14px rgba(0,245,255,.7)}
+.cm{color:var(--mag);text-shadow:0 0 14px rgba(255,45,120,.7)}
+.ca{color:var(--amb);text-shadow:0 0 14px rgba(255,184,0,.7)}
+
+/* LOGO badge */
+.logo-badge{
+  display:flex;align-items:center;gap:5px;
+  background:rgba(0,245,255,.06);border:1px solid rgba(0,245,255,.18);
+  border-radius:5px;padding:4px 8px;flex-shrink:0}
+.logo-icon{
+  width:26px;height:26px;border-radius:50%;
+  background:radial-gradient(circle at 40% 30%,rgba(255,255,255,.3),rgba(0,245,255,.1)),
+             radial-gradient(circle at 50% 50%,#00c8d4 0%,#003040 100%);
+  border:1px solid rgba(0,245,255,.4);
+  display:flex;align-items:center;justify-content:center;
+  box-shadow:0 0 10px rgba(0,245,255,.4);
+  font-size:.5rem;font-family:'Orbitron';font-weight:900;color:#fff}
+.logo-txt{font-family:'Orbitron';font-size:.48rem;font-weight:900;color:var(--cyan);
+  line-height:1.15;text-shadow:0 0 10px rgba(0,245,255,.6)}
+.logo-sub{font-family:'Share Tech Mono';font-size:.38rem;color:var(--dim);letter-spacing:1px}
+
+/* ═══ DIAL ═══ */
+.dial-section{display:flex;flex-direction:column;align-items:center;flex-shrink:0}
+.dial-wrap{position:relative;width:140px;height:140px;display:flex;align-items:center;justify-content:center}
+.dial-cv{position:absolute;inset:0;width:100%;height:100%;pointer-events:none}
+.dial-knob{
+  width:100px;height:100px;border-radius:50%;z-index:2;position:relative;
+  cursor:grab;touch-action:none;display:flex;align-items:center;justify-content:center;
+  background:
+    radial-gradient(circle at 34% 26%,rgba(255,255,255,.4) 0%,transparent 44%),
+    radial-gradient(circle at 66% 74%,rgba(0,0,0,.55) 0%,transparent 36%),
+    radial-gradient(circle at 50% 50%,#636375 0%,#2e2e40 30%,#151525 65%,#070712 100%);
+  box-shadow:0 10px 38px rgba(0,0,0,.95),inset 0 3px 8px rgba(255,255,255,.25),
+    inset 0 -3px 10px rgba(0,0,0,.85),0 0 0 2px rgba(255,255,255,.05),0 0 0 5px rgba(0,0,0,.35)}
+.dial-knob:active{cursor:grabbing}
+.dial-knob::before{content:'';position:absolute;inset:8px;border-radius:50%;
+  background:repeating-conic-gradient(from 0deg,rgba(255,255,255,.02) 0deg,rgba(0,0,0,.02) 4deg)}
+.dial-knob::after{content:'';position:absolute;inset:0;border-radius:50%;
+  background:radial-gradient(circle at 38% 26%,rgba(255,255,255,.14) 0%,transparent 55%)}
+.dial-tick{position:absolute;width:3px;height:22px;border-radius:2px;bottom:50%;left:50%;
+  transform-origin:bottom center;pointer-events:none;z-index:3}
+.tc{background:linear-gradient(to top,var(--cyan),transparent);box-shadow:0 0 9px var(--cyan)}
+.tm{background:linear-gradient(to top,var(--mag),transparent);box-shadow:0 0 9px var(--mag)}
+.ta{background:linear-gradient(to top,var(--amb),transparent);box-shadow:0 0 9px var(--amb)}
+.dial-row{display:flex;align-items:center;gap:10px}
+.dial-pct{font-family:'Orbitron';font-size:1rem;font-weight:900;color:#fff;
+  letter-spacing:2px;text-shadow:0 0 16px rgba(255,255,255,.5)}
+.dial-lbl{font-family:'Share Tech Mono';font-size:.44rem;color:var(--dim);letter-spacing:3px}
+
+/* ═══ UNIVERSAL BUTTON GRID (8 buttons) ═══ */
+.btn-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:6px;
+  width:100%;max-width:310px;flex-shrink:0;margin:6px 0}
+.bg-btn{
+  background:rgba(255,255,255,.05);
+  border:1px solid rgba(255,255,255,.09);
+  border-radius:7px;cursor:pointer;transition:all .2s;
+  padding:7px 4px 5px;text-align:center;position:relative;overflow:hidden}
+.bg-btn::before{content:'';position:absolute;inset:0;
+  background:radial-gradient(circle at 50% 0%,rgba(255,255,255,.06),transparent 70%)}
+.bg-btn:active{transform:scale(.93)}
+.bg-btn .bi{font-size:1.1rem;display:block;margin-bottom:2px;line-height:1}
+.bg-btn .bn{font-family:'Orbitron';font-size:.38rem;font-weight:700;letter-spacing:.5px;
+  color:var(--txt);display:block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;line-height:1.2}
+.bg-btn .bs{font-family:'Share Tech Mono';font-size:.38rem;color:var(--dim);display:block;
+  white-space:nowrap;overflow:hidden;text-overflow:ellipsis;line-height:1.2}
+
+/* music buttons */
+.bg-btn.mc:hover,.bg-btn.mc.on{background:rgba(0,245,255,.13);border-color:var(--cyan);
+  box-shadow:0 0 14px rgba(0,245,255,.3)}
+.bg-btn.mc.on .bn{color:var(--cyan)}
+/* podcast buttons */
+.bg-btn.mm:hover,.bg-btn.mm.on{background:rgba(255,45,120,.13);border-color:var(--mag);
+  box-shadow:0 0 14px rgba(255,45,120,.3)}
+.bg-btn.mm.on .bn{color:var(--mag)}
+/* radio buttons */
+.bg-btn.ma:hover,.bg-btn.ma.on{background:rgba(255,184,0,.13);border-color:var(--amb);
+  box-shadow:0 0 14px rgba(255,184,0,.3)}
+.bg-btn.ma.on .bn{color:var(--amb)}
+
+/* LIVE dot on active station */
+.bg-btn .live-dot{display:none;position:absolute;top:4px;right:4px;width:5px;height:5px;
+  border-radius:50%;background:var(--grn);box-shadow:0 0 5px var(--grn);
+  animation:blink 1.3s ease-in-out infinite}
+.bg-btn.on .live-dot{display:block}
+@keyframes blink{0%,100%{opacity:1}50%{opacity:.2}}
+
+/* ═══ MUSIC — extra controls ═══ */
+.m-now{width:100%;text-align:center;flex-shrink:0;margin-bottom:3px}
+.m-now-t{font-size:.84rem;font-weight:700;color:#fff;overflow:hidden;text-overflow:ellipsis;
+  white-space:nowrap;max-width:270px;margin:0 auto}
+.m-now-s{font-family:'Share Tech Mono';font-size:.48rem;color:var(--dim);letter-spacing:2px}
+.add-row{display:flex;gap:5px;width:100%;max-width:310px;flex-shrink:0;margin-top:4px}
+.ui{flex:1;background:rgba(0,245,255,.04);border:1px solid rgba(0,245,255,.08);
+  border-radius:4px;color:var(--txt);font-family:'Share Tech Mono';font-size:.58rem;
+  padding:7px 8px;outline:none;min-width:0;transition:border-color .2s}
+.ui:focus{border-color:var(--cyan)}
+.ui::placeholder{color:var(--dim)}
+.ab{background:transparent;border:1px solid var(--cyan);color:var(--cyan);
+  font-family:'Orbitron';font-size:.4rem;font-weight:700;letter-spacing:1px;
+  padding:7px 9px;border-radius:4px;cursor:pointer;white-space:nowrap;transition:all .2s;flex-shrink:0}
+.ab:hover{background:var(--cyan);color:#000}
+.fb{border-color:var(--pur);color:var(--pur)}
+.fb:hover{background:var(--pur);color:#fff}
+.tl{width:100%;max-width:310px;flex:1;min-height:0;overflow-y:auto;margin-top:4px}
+.tl::-webkit-scrollbar{width:2px}
+.tl::-webkit-scrollbar-thumb{background:rgba(0,245,255,.15);border-radius:2px}
+.ti{display:flex;align-items:center;gap:7px;padding:6px 8px;border-radius:4px;
+  border:1px solid transparent;cursor:pointer;transition:all .2s;flex-shrink:0}
+.ti:hover,.ti.on{background:rgba(0,245,255,.07);border-color:rgba(0,245,255,.15)}
+.ti.on .tn{color:var(--cyan)}
+.tn-n{font-family:'Share Tech Mono';font-size:.48rem;color:var(--mut);width:14px;flex-shrink:0}
+.tn{flex:1;font-size:.76rem;font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.td{background:none;border:none;cursor:pointer;color:var(--mut);font-size:.6rem;opacity:0;transition:.2s;flex-shrink:0}
+.ti:hover .td{opacity:1}
+.td:hover{color:var(--mag)}
+.empty-txt{text-align:center;padding:14px;color:var(--mut);
+  font-family:'Share Tech Mono';font-size:.52rem;letter-spacing:1px}
+
+/* ═══ PODCAST — episode list ═══ */
+.pod-info{width:100%;text-align:center;flex-shrink:0;margin-bottom:3px}
+.pod-info-t{font-size:.82rem;font-weight:700;color:#fff;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:270px;margin:0 auto}
+.pod-info-s{font-family:'Share Tech Mono';font-size:.46rem;color:var(--dim);letter-spacing:2px}
+.pod-scroll{width:100%;max-width:310px;flex:1;min-height:0;overflow-y:auto}
+.pod-scroll::-webkit-scrollbar{width:2px}
+.pod-scroll::-webkit-scrollbar-thumb{background:rgba(255,45,120,.15);border-radius:2px}
+.ep{display:flex;gap:8px;align-items:center;padding:7px 9px;
+  background:rgba(255,45,120,.03);border:1px solid rgba(255,45,120,.07);
+  border-radius:4px;margin-bottom:4px;cursor:pointer;transition:all .2s;flex-shrink:0}
+.ep:hover,.ep.on{background:rgba(255,45,120,.1);border-color:rgba(255,45,120,.3)}
+.ep-pb{width:26px;height:26px;border-radius:50%;border:1px solid var(--mag);color:var(--mag);
+  background:none;cursor:pointer;font-size:.65rem;display:flex;align-items:center;
+  justify-content:center;flex-shrink:0;transition:all .2s}
+.ep.on .ep-pb{background:var(--mag);color:#000}
+.ep-inf{flex:1;min-width:0}
+.ep-t{font-size:.74rem;font-weight:600;color:var(--txt);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.ep-d{font-family:'Share Tech Mono';font-size:.46rem;color:var(--dim)}
+.rss-input-row{display:flex;gap:5px;width:100%;max-width:310px;flex-shrink:0;margin-bottom:5px}
+.ri{flex:1;background:rgba(255,45,120,.04);border:1px solid rgba(255,45,120,.1);
+  border-radius:4px;color:var(--txt);font-family:'Share Tech Mono';font-size:.58rem;
+  padding:7px 8px;outline:none;min-width:0}
+.ri:focus{border-color:var(--mag)}
+.ri::placeholder{color:var(--dim)}
+.rb{background:transparent;border:1px solid var(--mag);color:var(--mag);
+  font-family:'Orbitron';font-size:.4rem;font-weight:700;letter-spacing:1px;
+  padding:7px 9px;border-radius:4px;cursor:pointer;white-space:nowrap;transition:all .2s;flex-shrink:0}
+.rb:hover{background:var(--mag);color:#fff}
+
+/* ═══ RADIO — NP band ═══ */
+.np-band{width:100%;max-width:310px;background:rgba(255,184,0,.04);
+  border:1px solid rgba(255,184,0,.1);border-radius:5px;
+  padding:7px 10px;flex-shrink:0;display:flex;align-items:center;gap:10px;margin-bottom:4px}
+.live-ring{width:7px;height:7px;border-radius:50%;background:var(--grn);
+  box-shadow:0 0 7px var(--grn);flex-shrink:0;animation:blink 1.3s ease-in-out infinite}
+.np-txt{flex:1;min-width:0}
+.np-t{font-size:.78rem;font-weight:600;color:#fff;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.np-a{font-family:'Share Tech Mono';font-size:.48rem;color:var(--dim)}
+.r-pbtn{width:40px;height:40px;border-radius:50%;border:2px solid var(--amb);color:var(--amb);
+  background:none;cursor:pointer;font-size:.95rem;display:flex;align-items:center;
+  justify-content:center;box-shadow:0 0 12px rgba(255,184,0,.35);transition:all .22s;flex-shrink:0}
+.r-pbtn:hover,.r-pbtn.on{background:var(--amb);color:#000;box-shadow:0 0 26px rgba(255,184,0,.6)}
+
+/* Radio category tabs (compact, row) */
+.cat-tabs{display:flex;gap:5px;width:100%;max-width:310px;flex-shrink:0;margin-bottom:5px;overflow-x:auto;scrollbar-width:none}
+.cat-tabs::-webkit-scrollbar{display:none}
+.ct{background:rgba(255,184,0,.04);border:1px solid rgba(255,184,0,.08);
+  border-radius:3px;color:var(--dim);font-family:'Orbitron';font-size:.38rem;
+  font-weight:700;letter-spacing:1px;text-transform:uppercase;
+  padding:5px 8px;cursor:pointer;white-space:nowrap;transition:all .2s;flex-shrink:0}
+.ct.on{background:rgba(255,184,0,.14);border-color:var(--amb);color:var(--amb)}
+
+/* add custom station row */
+.add-stn-row{display:flex;gap:5px;width:100%;max-width:310px;flex-shrink:0;margin-top:5px}
+.si{flex:1;background:rgba(255,184,0,.04);border:1px solid rgba(255,184,0,.08);
+  border-radius:4px;color:var(--txt);font-family:'Share Tech Mono';font-size:.56rem;
+  padding:7px 8px;outline:none;min-width:0}
+.si:focus{border-color:var(--amb)}
+.si::placeholder{color:var(--dim)}
+.sa{background:transparent;border:1px solid var(--amb);color:var(--amb);
+  font-family:'Orbitron';font-size:.38rem;font-weight:700;
+  padding:7px 9px;border-radius:4px;cursor:pointer;white-space:nowrap;transition:all .2s;flex-shrink:0}
+.sa:hover{background:var(--amb);color:#000}
+
+/* ═══ MINI PLAYER BAR ═══ */
+#bar{position:fixed;left:0;right:0;bottom:var(--nav-h);height:var(--bar-h);
+  background:rgba(4,1,12,.97);border-top:1px solid rgba(0,245,255,.08);
+  backdrop-filter:blur(24px);display:flex;align-items:center;padding:0 12px;gap:10px;z-index:200}
+.bar-seek{position:absolute;top:0;left:0;right:0;height:2px;background:rgba(255,255,255,.05);overflow:hidden}
+.bar-fill{height:100%;width:0%;background:linear-gradient(90deg,var(--cyan),var(--mag));
+  transition:width .8s linear}
+.bar-art{width:38px;height:38px;border-radius:5px;flex-shrink:0;
+  background:linear-gradient(135deg,#1a0535,#08001a);border:1px solid rgba(0,245,255,.1);
+  display:flex;align-items:center;justify-content:center;font-size:.95rem}
+.bar-info{flex:1;min-width:0}
+.bar-title{font-size:.78rem;font-weight:600;color:#fff;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.bar-sub{font-family:'Share Tech Mono';font-size:.48rem;color:var(--dim);letter-spacing:1px}
+.bar-ctrl{display:flex;align-items:center;gap:2px;flex-shrink:0}
+.bc{background:none;border:none;cursor:pointer;color:var(--dim);font-size:.85rem;
+  width:27px;height:27px;border-radius:50%;display:flex;align-items:center;justify-content:center;transition:all .2s}
+.bc:hover{color:#fff}
+#ppBtn{width:36px;height:36px;border:1.5px solid var(--cyan);color:var(--cyan);box-shadow:0 0 10px rgba(0,245,255,.3)}
+#ppBtn.playing{border-color:var(--mag);color:var(--mag);box-shadow:0 0 10px rgba(255,45,120,.3)}
+
+/* ═══ BOTTOM NAV ═══ */
+nav{position:fixed;bottom:0;left:0;right:0;height:var(--nav-h);
+  background:rgba(4,1,12,.99);border-top:1px solid rgba(255,255,255,.04);display:flex;z-index:200}
+.nb{flex:1;background:none;border:none;cursor:pointer;display:flex;flex-direction:column;
+  align-items:center;justify-content:center;gap:2px;color:var(--dim);
+  font-family:'Orbitron';font-size:.38rem;font-weight:700;letter-spacing:2px;
+  text-transform:uppercase;transition:all .2s;position:relative}
+.nb .ni{font-size:1.05rem;transition:all .2s}
+.nb.nc.on{color:var(--cyan)}.nb.nc.on .ni{filter:drop-shadow(0 0 5px var(--cyan))}
+.nb.nm.on{color:var(--mag)}.nb.nm.on .ni{filter:drop-shadow(0 0 5px var(--mag))}
+.nb.na.on{color:var(--amb)}.nb.na.on .ni{filter:drop-shadow(0 0 5px var(--amb))}
+.nb::after{content:'';position:absolute;top:0;left:50%;transform:translateX(-50%);
+  width:0;height:2px;border-radius:0 0 3px 3px;transition:width .3s}
+.nb.nc.on::after{width:44%;background:var(--cyan)}
+.nb.nm.on::after{width:44%;background:var(--mag)}
+.nb.na.on::after{width:44%;background:var(--amb)}
+
+/* ═══ LOADING / TOAST ═══ */
+.spin{display:inline-block;animation:spin .8s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+#toast{position:fixed;bottom:calc(var(--nav-h)+var(--bar-h)+8px);left:50%;
+  transform:translateX(-50%);background:rgba(0,245,255,.09);border:1px solid var(--cyan);
+  color:var(--cyan);font-family:'Share Tech Mono';font-size:.54rem;letter-spacing:2px;
+  padding:7px 16px;border-radius:4px;z-index:900;opacity:0;transition:opacity .25s;
+  pointer-events:none;white-space:nowrap;max-width:92vw;text-align:center}
+#toast.on{opacity:1}
+#toast.err{border-color:var(--mag);color:var(--mag);background:rgba(255,45,120,.08)}
+</style>
+</head>
+<body>
+
+<div id="pages">
+
+<!-- ════════════ MUSIC PAGE ════════════ -->
+<div class="page active" id="pg-music">
+  <div class="ph">
+    <div class="ph-left">
+      <div class="pg-title cc">&#9835;&nbsp;Music</div>
+      <div class="pg-sub">24/7 LIVE STREAMS</div>
+    </div>
+    <div class="logo-badge">
+      <div class="logo-icon">CL</div>
+      <div><div class="logo-txt">COACH L<br>PLAYER</div></div>
+    </div>
+  </div>
+
+  <div class="m-now">
+    <div class="m-now-t" id="mNowT">— Select a Stream —</div>
+    <div class="m-now-s" id="mNowS">TAP A BUTTON BELOW</div>
+  </div>
+
+  <div class="dial-section">
+    <div class="dial-row">
+      <div class="dial-wrap">
+        <canvas class="dial-cv" id="mCv"></canvas>
+        <div class="dial-knob" id="mKnob">
+          <div class="dial-tick tc" id="mTick" style="transform:translateX(-50%) rotate(-135deg)"></div>
+        </div>
+      </div>
+      <div>
+        <div class="dial-pct" id="mPct">80%</div>
+        <div class="dial-lbl" style="font-size:.38rem">VOL · DRAG</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 8 music stream buttons -->
+  <div class="btn-grid" id="musicGrid">
+    <div class="bg-btn mc" data-mi="0"><div class="live-dot"></div><span class="bi">🎵</span><span class="bn">Afrobeats</span><span class="bs">24/7 LIVE</span></div>
+    <div class="bg-btn mc" data-mi="1"><div class="live-dot"></div><span class="bi">🙏</span><span class="bn">Gospel</span><span class="bs">24/7 LIVE</span></div>
+    <div class="bg-btn mc" data-mi="2"><div class="live-dot"></div><span class="bi">🎤</span><span class="bn">Hip-Hop</span><span class="bs">24/7 LIVE</span></div>
+    <div class="bg-btn mc" data-mi="3"><div class="live-dot"></div><span class="bi">🎷</span><span class="bn">Jazz</span><span class="bs">24/7 LIVE</span></div>
+    <div class="bg-btn mc" data-mi="4"><div class="live-dot"></div><span class="bi">📚</span><span class="bn">Lo-Fi</span><span class="bs">24/7 LIVE</span></div>
+    <div class="bg-btn mc" data-mi="5"><div class="live-dot"></div><span class="bi">🎻</span><span class="bn">Classical</span><span class="bs">24/7 LIVE</span></div>
+    <div class="bg-btn mc" data-mi="6"><div class="live-dot"></div><span class="bi">🎧</span><span class="bn">Electronic</span><span class="bs">24/7 LIVE</span></div>
+    <div class="bg-btn mc" data-mi="7"><div class="live-dot"></div><span class="bi">🌊</span><span class="bn">Ambient</span><span class="bs">24/7 LIVE</span></div>
+  </div>
+
+  <div class="add-row">
+    <input type="text" class="ui" id="urlIn" placeholder="Add your own URL (MP3 / stream)...">
+    <button class="ab" id="addBtn">ADD</button>
+    <label class="ab fb" style="cursor:pointer">&#128193;<input type="file" id="fileIn" accept="audio/*" multiple style="display:none"></label>
+  </div>
+
+  <div class="tl" id="trackList"><div class="empty-txt">Your playlist is empty.</div></div>
+</div>
+
+<!-- ════════════ PODCAST PAGE ════════════ -->
+<div class="page go-right" id="pg-pod">
+  <div class="ph">
+    <div class="ph-left">
+      <div class="pg-title cm">&#127897;&nbsp;Podcasts</div>
+      <div class="pg-sub">COACH L NETWORK &amp; MORE</div>
+    </div>
+    <div class="logo-badge" style="border-color:rgba(255,45,120,.25);background:rgba(255,45,120,.05)">
+      <div class="logo-icon" style="background:radial-gradient(circle at 40% 30%,rgba(255,255,255,.3),rgba(255,45,120,.1)),radial-gradient(circle at 50% 50%,#c0185a 0%,#300010 100%);border-color:rgba(255,45,120,.4);box-shadow:0 0 10px rgba(255,45,120,.4)">CL</div>
+      <div><div class="logo-txt" style="color:var(--mag)">COACH L<br>PLAYER</div></div>
+    </div>
+  </div>
+
+  <div class="pod-info">
+    <div class="pod-info-t" id="podTitle">— Select a Podcast —</div>
+    <div class="pod-info-s" id="podSub">TAP A BUTTON TO LOAD</div>
+  </div>
+
+  <div class="dial-section">
+    <div class="dial-row">
+      <div class="dial-wrap">
+        <canvas class="dial-cv" id="pCv"></canvas>
+        <div class="dial-knob" id="pKnob">
+          <div class="dial-tick tm" id="pTick" style="transform:translateX(-50%) rotate(-135deg)"></div>
+        </div>
+      </div>
+      <div>
+        <div class="dial-pct" id="pPct">80%</div>
+        <div class="dial-lbl" style="font-size:.38rem">VOL · DRAG</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 8 podcast buttons -->
+  <div class="btn-grid" id="podGrid">
+    <div class="bg-btn mm" data-pi="0"><span class="bi">🎙️</span><span class="bn">Coach L</span><span class="bs">Academy</span></div>
+    <div class="bg-btn mm" data-pi="1"><span class="bi">🎙️</span><span class="bn">Unplugged</span><span class="bs">Coach L</span></div>
+    <div class="bg-btn mm" data-pi="2"><span class="bi">📰</span><span class="bn">The Daily</span><span class="bs">NYT News</span></div>
+    <div class="bg-btn mm" data-pi="3"><span class="bi">💡</span><span class="bn">TED Talks</span><span class="bs">Daily</span></div>
+    <div class="bg-btn mm" data-pi="4"><span class="bi">🤖</span><span class="bn">Lex Fridman</span><span class="bs">Podcast</span></div>
+    <div class="bg-btn mm" data-pi="5"><span class="bi">🔬</span><span class="bn">Science Vs</span><span class="bs">Gimlet</span></div>
+    <div class="bg-btn mm" data-pi="6"><span class="bi">📡</span><span class="bn">NPR News</span><span class="bs">Now</span></div>
+    <div class="bg-btn mm" data-pi="7"><span class="bi">➕</span><span class="bn">Custom</span><span class="bs">RSS Feed</span></div>
+  </div>
+
+  <!-- Custom RSS row (shown when button 7 active) -->
+  <div class="rss-input-row" id="rssRow" style="display:none">
+    <input type="text" class="ri" id="rssIn" placeholder="Paste any RSS feed URL...">
+    <button class="rb" id="rssBtn">LOAD</button>
+  </div>
+
+  <div class="pod-scroll" id="podScroll">
+    <div class="empty-txt">Select a podcast above to load episodes.</div>
+  </div>
+</div>
+
+<!-- ════════════ RADIO PAGE ════════════ -->
+<div class="page go-right" id="pg-radio">
+  <div class="ph">
+    <div class="ph-left">
+      <div class="pg-title ca">&#128251;&nbsp;Radio</div>
+      <div class="pg-sub">LIVE INTERNET RADIO</div>
+    </div>
+    <div class="logo-badge" style="border-color:rgba(255,184,0,.25);background:rgba(255,184,0,.05)">
+      <div class="logo-icon" style="background:radial-gradient(circle at 40% 30%,rgba(255,255,255,.3),rgba(255,184,0,.1)),radial-gradient(circle at 50% 50%,#b07800 0%,#2a1a00 100%);border-color:rgba(255,184,0,.4);box-shadow:0 0 10px rgba(255,184,0,.4)">CL</div>
+      <div><div class="logo-txt" style="color:var(--amb)">COACH L<br>PLAYER</div></div>
+    </div>
+  </div>
+
+  <div class="np-band">
+    <div class="live-ring"></div>
+    <div class="np-txt">
+      <div class="np-t" id="rNowT">Coach L Radio</div>
+      <div class="np-a" id="rNowA">Tap a station to tune in</div>
+    </div>
+    <button class="r-pbtn" id="rPlayBtn">&#9654;</button>
+  </div>
+
+  <div class="dial-section">
+    <div class="dial-row">
+      <div class="dial-wrap">
+        <canvas class="dial-cv" id="rCv"></canvas>
+        <div class="dial-knob" id="rKnob">
+          <div class="dial-tick ta" id="rTick" style="transform:translateX(-50%) rotate(-135deg)"></div>
+        </div>
+      </div>
+      <div>
+        <div class="dial-pct" id="rPct">80%</div>
+        <div class="dial-lbl" style="font-size:.38rem">VOL · DRAG</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Category filter tabs -->
+  <div class="cat-tabs" id="catTabs">
+    <div class="ct on" data-cat="all">&#9733; All</div>
+    <div class="ct" data-cat="coachl">&#127460;&#127462; Coach L</div>
+    <div class="ct" data-cat="sa">&#127480;&#127462; SA</div>
+    <div class="ct" data-cat="gospel">&#10013; Gospel</div>
+    <div class="ct" data-cat="world">&#127760; World</div>
+    <div class="ct" data-cat="music">&#127925; Music</div>
+  </div>
+
+  <!-- 8 radio station buttons (filtered) -->
+  <div class="btn-grid" id="radioGrid"></div>
+
+  <div class="add-stn-row">
+    <input type="text" class="si" id="stnUrl" placeholder="Custom stream URL...">
+    <input type="text" class="si" id="stnName" placeholder="Name" style="max-width:88px">
+    <button class="sa" id="addStnBtn">&#43;</button>
+  </div>
+</div>
+
+</div><!-- /pages -->
+
+<!-- ═══════════ BAR ═══════════ -->
+<div id="bar">
+  <div class="bar-seek"><div class="bar-fill" id="barFill"></div></div>
+  <div class="bar-art" id="barArt">&#9835;</div>
+  <div class="bar-info">
+    <div class="bar-title" id="barT">Coach L Player</div>
+    <div class="bar-sub" id="barS">READY TO STREAM</div>
+  </div>
+  <div class="bar-ctrl">
+    <button class="bc" id="prevBtn">&#9664;&#9664;</button>
+    <button class="bc" id="ppBtn">&#9654;</button>
+    <button class="bc" id="nextBtn">&#9654;&#9654;</button>
+  </div>
+</div>
+
+<!-- ═══════════ NAV ═══════════ -->
+<nav>
+  <button class="nb nc on" data-pg="music"><span class="ni">&#9835;</span>Music</button>
+  <button class="nb nm"    data-pg="pod"  ><span class="ni">&#127897;</span>Podcasts</button>
+  <button class="nb na"   data-pg="radio"><span class="ni">&#128251;</span>Radio</button>
+</nav>
+
+<div id="toast"></div>
+
+<script>
+/* ──────────── DATA ──────────── */
+const MUSIC_STREAMS = [
+  {name:'Afrobeats Radio',  genre:'Afrobeats · African Pop',   icon:'🎵', url:'https://stream.zeno.fm/0r0xa792kwzuv'},
+  {name:'Gospel Hits',      genre:'Gospel · Worship',          icon:'🙏', url:'https://stream.zeno.fm/yn65fsaurfhvv'},
+  {name:'Hip-Hop Nation',   genre:'Hip-Hop · R&B',             icon:'🎤', url:'https://stream.zeno.fm/f3zvksmjds8uv'},
+  {name:'Radio Swiss Jazz', genre:'Jazz · Smooth',             icon:'🎷', url:'https://stream.radioswissjazz.ch/web/mp3_128'},
+  {name:'Lo-Fi Hip-Hop',    genre:'Lo-Fi · Study Beats',      icon:'📚', url:'https://streams.ilovemusic.de/iloveradio17.mp3'},
+  {name:'Swiss Classic',    genre:'Classical · Orchestral',   icon:'🎻', url:'https://stream.radioswissclassic.ch/web/mp3_128'},
+  {name:'SomaFM Groove',    genre:'Electronic · Ambient',     icon:'🎧', url:'https://ice6.somafm.com/groovesalad-128-mp3'},
+  {name:'Drone Zone',       genre:'Space Ambient · Chill',    icon:'🌊', url:'https://ice6.somafm.com/dronezone-128-mp3'},
+];
+
+const PODCASTS = [
+  {name:'Coach L Academy',   author:'Coach L',       rss:'https://feed.podbean.com/coachlacademy/feed.xml',     fallback:'https://rss.com/podcasts/coach-l-academy/'},
+  {name:'Coach L Unplugged', author:'Coach L',       rss:'https://rss.com/podcasts/coach-l-unplugged/feed',    fallback:''},
+  {name:'The Daily',         author:'New York Times',rss:'https://feeds.simplecast.com/54nAGcIl',              fallback:''},
+  {name:'TED Talks Daily',   author:'TED',           rss:'https://feeds.feedburner.com/TEDTalks_audio',        fallback:''},
+  {name:'Lex Fridman',       author:'Lex Fridman',   rss:'https://lexfridman.com/feed/podcast/',               fallback:''},
+  {name:'Science Vs',        author:'Gimlet',        rss:'https://feeds.megaphone.fm/sciencevs',               fallback:''},
+  {name:'NPR News Now',      author:'NPR',           rss:'https://feeds.npr.org/500005/podcast.xml',           fallback:''},
+  {name:'Custom RSS',        author:'Your feed',     rss:'',                                                    fallback:'',custom:true},
+];
+
+const ALL_STATIONS = [
+  {name:'Coach L Radio',   genre:'Talk · Ministry · ZA',     icon:'🎙️', url:'https://coach-l-radio.duckdns.org/listen/coach-l-radio/radio.mp3', cat:'coachl', pinned:true},
+  {name:'Radio 702',       genre:'Talk · South Africa',      icon:'🇿🇦', url:'https://playerservices.streamtheworld.com/api/livestream-redirect/TALK702.mp3', cat:'sa'},
+  {name:'5FM',             genre:'Pop · Hip-Hop · SA',       icon:'🇿🇦', url:'https://playerservices.streamtheworld.com/api/livestream-redirect/SABC_5FM_SC', cat:'sa'},
+  {name:'Jacaranda FM',    genre:'Pop · Afrikaans · SA',     icon:'🇿🇦', url:'https://playerservices.streamtheworld.com/api/livestream-redirect/JACARANDA.mp3', cat:'sa'},
+  {name:'Metro FM',        genre:'Urban · SA',               icon:'🇿🇦', url:'https://live.mms.primedia.co.za/metrofm', cat:'sa'},
+  {name:'BBC World Svc',   genre:'News · World',             icon:'🇬🇧', url:'https://stream.live.vc.bbcmedia.co.uk/bbc_world_service', cat:'world'},
+  {name:'BBC Radio 1',     genre:'Pop · Dance · UK',         icon:'🇬🇧', url:'https://stream.live.vc.bbcmedia.co.uk/bbc_radio_one', cat:'world'},
+  {name:'BBC Radio 2',     genre:'Easy Listening · UK',      icon:'🇬🇧', url:'https://stream.live.vc.bbcmedia.co.uk/bbc_radio_two', cat:'world'},
+  {name:'K-LOVE',          genre:'Christian · CCM',          icon:'✝️',  url:'https://maestro.emfcdn.com/stream_for/k-love/web/aac', cat:'gospel'},
+  {name:'Air1 Radio',      genre:'Christian · Worship',      icon:'✝️',  url:'https://maestro.emfcdn.com/stream_for/air1/web/aac', cat:'gospel'},
+  {name:'Praise 106.5',    genre:'Gospel · Praise',          icon:'🙏',  url:'https://playerservices.streamtheworld.com/api/livestream-redirect/KPZS_FM_SC', cat:'gospel'},
+  {name:'SomaFM Indie',    genre:'Indie Pop · Alt',          icon:'🎸',  url:'https://ice6.somafm.com/indiepop-128-mp3', cat:'music'},
+  {name:'Secret Agent FM', genre:'Jazz · Spy Vibes',         icon:'🕵️', url:'https://ice6.somafm.com/secretagent-128-mp3', cat:'music'},
+  {name:'Dance Wave',      genre:'Dance · EDM',              icon:'💃',  url:'https://dancewave.online/dance.mp3', cat:'music'},
+  {name:'SomaFM Groove',   genre:'Ambient · Electronic',     icon:'🎧',  url:'https://ice6.somafm.com/groovesalad-128-mp3', cat:'music'},
+  {name:'Party Vibe: RnB', genre:'R&B · Soul',               icon:'🔥',  url:'https://www.partyvibe.com/listen/r-and-b-radio.pls', cat:'music'},
+];
+
+/* ──────────── PAGE NAV ──────────── */
+const pgMap = {music:document.getElementById('pg-music'),pod:document.getElementById('pg-pod'),radio:document.getElementById('pg-radio')};
+const pgOrder = ['music','pod','radio'];
+let curPg = 'music';
+
+document.querySelectorAll('.nb').forEach(b => b.addEventListener('click', () => goPage(b.dataset.pg)));
+function goPage(name){
+  if(name === curPg) return;
+  const ci = pgOrder.indexOf(curPg), ni = pgOrder.indexOf(name);
+  pgMap[curPg].classList.remove('active');
+  pgMap[curPg].classList.add(ni > ci ? 'go-left' : 'go-right');
+  pgMap[name].classList.remove('go-left','go-right');
+  pgMap[name].classList.add('active');
+  document.querySelectorAll('.nb').forEach(b => b.classList.toggle('on', b.dataset.pg === name));
+  curPg = name;
+  setTimeout(redrawAll, 50);
+}
+
+/* ──────────── AUDIO ENGINE ──────────── */
+const aud = new Audio();
+aud.crossOrigin = 'anonymous';
+let vol = 0.8, playing = false, mode = 'idle', curIdx = -1;
+let actx, gainNode, srcNode, connected = false;
+
+function ensureCtx(){
+  if(!actx){ actx = new(window.AudioContext||window.webkitAudioContext)(); gainNode = actx.createGain(); gainNode.connect(actx.destination); }
+  if(!connected){ try{ srcNode = actx.createMediaElementSource(aud); srcNode.connect(gainNode); connected = true; }catch(e){} }
+  if(actx.state === 'suspended') actx.resume();
+}
+function applyVol(v){
+  vol = Math.max(0, Math.min(2, v));
+  if(gainNode) gainNode.gain.value = vol;
+  aud.volume = Math.min(1, vol);
+  redrawAll();
+}
+function playAudio(url, title, sub, m){
+  ensureCtx();
+  aud.src = url; aud.load();
+  aud.play().then(() => {
+    playing = true; mode = m; updatePP(); setBar(title, sub);
+    setupMS(title, sub);
+  }).catch(() => toast('Stream unavailable — try another', true));
+}
+function togglePlay(){
+  if(!aud.src){ toast('Nothing loaded', true); return; }
+  ensureCtx();
+  if(playing){ aud.pause(); playing = false; } else { aud.play().catch(()=>{}); playing = true; }
+  updatePP();
+}
+function updatePP(){
+  const b = document.getElementById('ppBtn');
+  b.innerHTML = playing ? '&#9646;&#9646;' : '&#9654;';
+  b.classList.toggle('playing', playing);
+  const rb = document.getElementById('rPlayBtn');
+  if(mode === 'radio'){ rb.innerHTML = playing ? '&#9646;&#9646;' : '&#9654;'; rb.classList.toggle('on', playing); }
+  else { rb.innerHTML = '&#9654;'; rb.classList.remove('on'); }
+}
+function setBar(t, s){ document.getElementById('barT').textContent = t; document.getElementById('barS').textContent = s; }
+aud.addEventListener('timeupdate', () => {
+  if(aud.duration) document.getElementById('barFill').style.width = (aud.currentTime/aud.duration*100)+'%';
+});
+aud.addEventListener('ended', () => { if(mode === 'music-pl') nextTrack(); else { playing = false; updatePP(); } });
+document.getElementById('ppBtn').addEventListener('click', togglePlay);
+document.getElementById('prevBtn').addEventListener('click', () => { if(mode==='music-pl') prevTrack(); });
+document.getElementById('nextBtn').addEventListener('click', () => { if(mode==='music-pl') nextTrack(); });
+document.getElementById('rPlayBtn').addEventListener('click', () => {
+  if(mode==='radio'&&playing){ aud.pause(); playing=false; updatePP(); }
+  else if(curStn >= 0) tuneStation(curStn);
+  else tuneStation(0);
+});
+
+/* Media Session API (phone hardware keys) */
+function setupMS(title, artist){
+  if(!('mediaSession' in navigator)) return;
+  navigator.mediaSession.metadata = new MediaMetadata({title, artist, album:'Coach L Player'});
+  navigator.mediaSession.setActionHandler('play', () => { aud.play(); playing=true; updatePP(); });
+  navigator.mediaSession.setActionHandler('pause', () => { aud.pause(); playing=false; updatePP(); });
+  navigator.mediaSession.setActionHandler('previoustrack', () => { if(mode==='music-pl') prevTrack(); });
+  navigator.mediaSession.setActionHandler('nexttrack', () => { if(mode==='music-pl') nextTrack(); });
+}
+
+/* ──────────── MUSIC STREAMS ──────────── */
+let curMusicStream = -1;
+document.getElementById('musicGrid').addEventListener('click', e => {
+  const b = e.target.closest('[data-mi]');
+  if(!b) return;
+  const i = parseInt(b.dataset.mi);
+  curMusicStream = i;
+  document.querySelectorAll('[data-mi]').forEach((el,j) => el.classList.toggle('on', j===i));
+  curIdx = -1; renderPl();
+  const s = MUSIC_STREAMS[i];
+  document.getElementById('mNowT').textContent = s.name;
+  document.getElementById('mNowS').textContent = s.genre.toUpperCase() + ' · STREAMING LIVE';
+  playAudio(s.url, s.name, s.genre, 'music-stream');
+});
+
+/* ──────────── PLAYLIST ──────────── */
+let pl = JSON.parse(localStorage.getItem('clp_pl')||'[]');
+function savePl(){ localStorage.setItem('clp_pl', JSON.stringify(pl)); }
+function renderPl(){
+  const el = document.getElementById('trackList');
+  if(!pl.length){ el.innerHTML='<div class="empty-txt">Your playlist is empty.</div>'; return; }
+  el.innerHTML = pl.map((t,i)=>`
+    <div class="ti ${i===curIdx&&mode==='music-pl'?'on':''}" data-i="${i}">
+      <span class="tn-n">${i+1}</span>
+      <span class="tn">${esc(t.name)}</span>
+      <button class="td" data-d="${i}">&#10005;</button>
+    </div>`).join('');
+}
+document.getElementById('trackList').addEventListener('click', e => {
+  const d = e.target.closest('[data-d]');
+  if(d){ remTrack(parseInt(d.dataset.d)); return; }
+  const r = e.target.closest('.ti');
+  if(r) playTrack(parseInt(r.dataset.i));
+});
+function playTrack(i){
+  curIdx=i; curMusicStream=-1;
+  document.querySelectorAll('[data-mi]').forEach(el=>el.classList.remove('on'));
+  const t=pl[i];
+  document.getElementById('mNowT').textContent=t.name;
+  document.getElementById('mNowS').textContent='TRACK '+(i+1)+' / '+pl.length;
+  playAudio(t.url, t.name, 'MY PLAYLIST', 'music-pl'); renderPl();
+}
+function nextTrack(){ if(pl.length) playTrack((curIdx+1)%pl.length); }
+function prevTrack(){ if(pl.length) playTrack(curIdx<=0?pl.length-1:curIdx-1); }
+function remTrack(i){ pl.splice(i,1); if(curIdx===i){aud.pause();playing=false;updatePP();curIdx=-1;}else if(curIdx>i)curIdx--; savePl();renderPl(); }
+
+document.getElementById('addBtn').addEventListener('click', () => {
+  const u = document.getElementById('urlIn').value.trim(); if(!u){toast('Enter a URL',true);return;}
+  const n = u.split('/').pop().replace(/\?.*$/,'').replace(/\.[^.]+$/,'')||'Stream';
+  pl.push({name:n,url:u}); savePl(); renderPl(); document.getElementById('urlIn').value=''; toast('Added: '+n);
+});
+document.getElementById('urlIn').addEventListener('keydown', e => { if(e.key==='Enter') document.getElementById('addBtn').click(); });
+document.getElementById('fileIn').addEventListener('change', e => {
+  Array.from(e.target.files).forEach(f=>pl.push({name:f.name.replace(/\.[^.]+$/,''),url:URL.createObjectURL(f)}));
+  savePl(); renderPl(); toast(e.target.files.length+' file(s) added');
+});
+renderPl();
+
+/* ──────────── PODCASTS ──────────── */
+let curPod = -1, episodes = [];
+document.getElementById('podGrid').addEventListener('click', e => {
+  const b = e.target.closest('[data-pi]');
+  if(!b) return;
+  const i = parseInt(b.dataset.pi);
+  document.querySelectorAll('[data-pi]').forEach((el,j)=>el.classList.toggle('on',j===i));
+  const pod = PODCASTS[i];
+  if(pod.custom){
+    document.getElementById('rssRow').style.display='flex';
+    document.getElementById('podScroll').innerHTML='<div class="empty-txt">Paste an RSS feed URL above and tap LOAD.</div>';
+    document.getElementById('podTitle').textContent='Custom RSS Feed';
+    document.getElementById('podSub').textContent='ENTER URL ABOVE';
+    return;
+  }
+  document.getElementById('rssRow').style.display='none';
+  document.getElementById('podTitle').textContent=pod.name;
+  document.getElementById('podSub').textContent=pod.author.toUpperCase()+' · LOADING...';
+  loadRSSFeed(pod.rss || pod.fallback, pod.name, pod.author);
+});
+
+document.getElementById('rssBtn').addEventListener('click', () => {
+  const u = document.getElementById('rssIn').value.trim();
+  if(!u){toast('Enter an RSS URL',true);return;}
+  loadRSSFeed(u,'Custom Feed','RSS');
+});
+
+async function loadRSSFeed(url, name, author){
+  document.getElementById('podScroll').innerHTML='<div class="empty-txt"><span class="spin">↻</span> Loading episodes...</div>';
+  try{
+    const r = await fetch('https://api.rss2json.com/v1/api.json?rss_url='+encodeURIComponent(url)+'&count=30');
+    const d = await r.json();
+    if(d.status!=='ok') throw new Error(d.message||'Feed error');
+    episodes = d.items||[];
+    document.getElementById('podSub').textContent = author.toUpperCase()+' · '+episodes.length+' EPISODES';
+    renderEpisodes();
+    toast('Loaded '+episodes.length+' episodes');
+  } catch(e){
+    document.getElementById('podScroll').innerHTML='<div class="empty-txt">Could not load feed.<br>Check URL or try again.</div>';
+    document.getElementById('podSub').textContent='LOAD FAILED';
+    toast('RSS error: check URL',true);
+  }
+}
+
+let curEp = -1;
+function renderEpisodes(){
+  const el = document.getElementById('podScroll');
+  if(!episodes.length){el.innerHTML='<div class="empty-txt">No episodes found.</div>';return;}
+  el.innerHTML = episodes.map((ep,i)=>{
+    const hasAudio = ep.enclosure&&ep.enclosure.link;
+    const date = ep.pubDate ? new Date(ep.pubDate).toLocaleDateString('en-ZA') : '';
+    return `<div class="ep ${i===curEp?'on':''} ${!hasAudio?'disabled':''}" data-ei="${i}">
+      <button class="ep-pb" ${!hasAudio?'disabled':''}>&#9654;</button>
+      <div class="ep-inf">
+        <div class="ep-t">${esc(ep.title||'Episode '+(i+1))}</div>
+        <div class="ep-d">${date}${!hasAudio?' · No audio':''}</div>
+      </div></div>`;
+  }).join('');
+}
+document.getElementById('podScroll').addEventListener('click', e => {
+  const ep = e.target.closest('[data-ei]');
+  if(!ep) return;
+  const i = parseInt(ep.dataset.ei);
+  const item = episodes[i];
+  if(!item?.enclosure?.link) return;
+  curEp = i;
+  renderEpisodes();
+  playAudio(item.enclosure.link, item.title||'Episode', 'PODCAST', 'podcast');
+  document.getElementById('podTitle').textContent = item.title||'Episode';
+  document.getElementById('podSub').textContent = (item.pubDate?new Date(item.pubDate).toLocaleDateString('en-ZA'):'')+' · PLAYING';
+});
+
+/* ──────────── RADIO ──────────── */
+let curStn = -1, curCat = 'all';
+let stations = JSON.parse(localStorage.getItem('clp_stns')||'null') || [...ALL_STATIONS];
+function saveStns(){ localStorage.setItem('clp_stns', JSON.stringify(stations)); }
+
+function getVisible(){
+  return stations.map((s,i)=>({s,i})).filter(({s})=>curCat==='all'||s.cat===curCat||s.pinned);
+}
+
+function renderRadioGrid(){
+  const el = document.getElementById('radioGrid');
+  const visible = getVisible().slice(0,8);
+  if(!visible.length){ el.innerHTML=''; return; }
+  el.innerHTML = visible.map(({s,i})=>`
+    <div class="bg-btn ma ${i===curStn?'on':''}" data-si="${i}">
+      <div class="live-dot"></div>
+      <span class="bi">${s.icon||'📻'}</span>
+      <span class="bn">${esc(s.name)}</span>
+      <span class="bs">${esc((s.genre||'').split('·')[0].trim())}</span>
+    </div>`).join('');
+}
+
+document.getElementById('radioGrid').addEventListener('click', e => {
+  const b = e.target.closest('[data-si]');
+  if(b) tuneStation(parseInt(b.dataset.si));
+});
+
+function tuneStation(i){
+  curStn = i;
+  const s = stations[i];
+  playAudio(s.url, s.name, s.genre||'LIVE RADIO', 'radio');
+  document.getElementById('rNowT').textContent = s.name;
+  document.getElementById('rNowA').textContent = (s.genre||'LIVE')+' · STREAMING';
+  renderRadioGrid();
+}
+
+document.getElementById('catTabs').addEventListener('click', e => {
+  const ct = e.target.closest('[data-cat]');
+  if(!ct) return;
+  curCat = ct.dataset.cat;
+  document.querySelectorAll('.ct').forEach(x=>x.classList.toggle('on',x.dataset.cat===curCat));
+  renderRadioGrid();
+});
+
+document.getElementById('addStnBtn').addEventListener('click', () => {
+  const url = document.getElementById('stnUrl').value.trim();
+  if(!url){toast('Enter a stream URL',true);return;}
+  const name = document.getElementById('stnName').value.trim()||'Station '+(stations.length+1);
+  const icons = ['📡','🔊','🎵','🌐','⚡'];
+  stations.push({name,genre:'Custom',icon:icons[stations.length%icons.length],url,cat:'all'});
+  saveStns(); renderRadioGrid();
+  document.getElementById('stnUrl').value=''; document.getElementById('stnName').value='';
+  toast('Station added: '+name);
+});
+
+renderRadioGrid();
+
+// AzuraCast now-playing poll
+const NP_API='https://coach-l-radio.duckdns.org/api/nowplaying/coach-l-radio';
+async function pollNP(){
+  try{
+    const r=await fetch(NP_API,{cache:'no-store',signal:AbortSignal.timeout(5000)});
+    if(!r.ok)return;
+    const d=await r.json();
+    const s=d?.now_playing?.song;
+    if(s){
+      document.getElementById('rNowT').textContent=s.title||'Coach L Radio';
+      document.getElementById('rNowA').textContent=(s.artist||'LIVE')+' · COACH L RADIO';
+      if(mode==='radio') setBar(s.title||'Coach L Radio', s.artist||'LIVE');
+    }
+  }catch(e){}
+}
+pollNP(); setInterval(pollNP, 30000);
+
+/* ──────────── DIALS ──────────── */
+const DIALS = [
+  {knob:document.getElementById('mKnob'),cv:document.getElementById('mCv'),tick:document.getElementById('mTick'),pct:document.getElementById('mPct'),c1:'#00f5ff',c2:'#9b59ff'},
+  {knob:document.getElementById('pKnob'),cv:document.getElementById('pCv'),tick:document.getElementById('pTick'),pct:document.getElementById('pPct'),c1:'#ff2d78',c2:'#ff8cb0'},
+  {knob:document.getElementById('rKnob'),cv:document.getElementById('rCv'),tick:document.getElementById('rTick'),pct:document.getElementById('rPct'),c1:'#ffb800',c2:'#ff6b00'},
+];
+const START=Math.PI*.75, SWEEP=Math.PI*1.5;
+
+function drawDial(cv,v,c1,c2){
+  const dpr=devicePixelRatio||1, W=cv.offsetWidth, H=cv.offsetHeight;
+  if(!W||!H)return;
+  cv.width=W*dpr; cv.height=H*dpr;
+  const ctx=cv.getContext('2d'); ctx.scale(dpr,dpr);
+  const cx=W/2, cy=H/2, r=Math.min(W,H)/2-6, lw=6;
+  // track
+  ctx.beginPath(); ctx.arc(cx,cy,r,START,START+SWEEP);
+  ctx.strokeStyle='rgba(255,255,255,.07)'; ctx.lineWidth=lw; ctx.lineCap='round'; ctx.stroke();
+  // value arc
+  const vn=Math.min(v/2,1);
+  if(vn>0.005){
+    const g=ctx.createLinearGradient(cx-r,cy+r,cx+r,cy-r);
+    g.addColorStop(0,c1); g.addColorStop(1,c2);
+    ctx.beginPath(); ctx.arc(cx,cy,r,START,START+vn*SWEEP);
+    ctx.strokeStyle=g; ctx.lineWidth=lw; ctx.lineCap='round';
+    ctx.shadowColor=c1; ctx.shadowBlur=13; ctx.stroke(); ctx.shadowBlur=0;
+  }
+  // ticks
+  for(let i=0;i<=20;i++){
+    const ang=START+(i/20)*SWEEP, vn2=Math.min(vol/2,1);
+    const r1=r+5, r2=r+(i%5===0?12:8);
+    ctx.beginPath();
+    ctx.moveTo(cx+Math.cos(ang)*r1, cy+Math.sin(ang)*r1);
+    ctx.lineTo(cx+Math.cos(ang)*r2, cy+Math.sin(ang)*r2);
+    ctx.strokeStyle=i/20<=vn2?c1+'bb':'rgba(255,255,255,.07)';
+    ctx.lineWidth=i%5===0?2:1; ctx.lineCap='round'; ctx.stroke();
+  }
+}
+function updateDial(d,v){
+  const vn=Math.min(v/2,1);
+  d.tick.style.transform=`translateX(-50%) rotate(${-135+vn*270}deg)`;
+  d.pct.textContent=Math.round(v*100)+'%';
+  drawDial(d.cv,v,d.c1,d.c2);
+}
+function redrawAll(){ DIALS.forEach(d=>updateDial(d,vol)); }
+
+DIALS.forEach(d => {
+  let sy=0, sv=0, drag=false;
+  d.knob.addEventListener('mousedown', e=>{sy=e.clientY;sv=vol;drag=true;e.preventDefault();});
+  window.addEventListener('mousemove', e=>{if(drag)applyVol(sv+(sy-e.clientY)/150);});
+  window.addEventListener('mouseup', ()=>{drag=false;});
+  d.knob.addEventListener('touchstart', e=>{sy=e.touches[0].clientY;sv=vol;drag=true;},{passive:true});
+  window.addEventListener('touchmove', e=>{if(drag)applyVol(sv+(sy-e.touches[0].clientY)/150);},{passive:true});
+  window.addEventListener('touchend', ()=>{drag=false;});
+});
+
+setTimeout(redrawAll, 80);
+window.addEventListener('resize', redrawAll);
+
+/* ──────────── UTILS ──────────── */
+function esc(s){ const d=document.createElement('div'); d.textContent=s||''; return d.innerHTML; }
+let toastTimer;
+function toast(msg, err=false){
+  const el=document.getElementById('toast');
+  el.textContent=msg; el.className='on'+(err?' err':'');
+  clearTimeout(toastTimer); toastTimer=setTimeout(()=>el.className='',2800);
+}
+document.addEventListener('keydown', e=>{
+  if(e.target.tagName==='INPUT') return;
+  if(e.code==='Space'){e.preventDefault();togglePlay();}
+});
+</script>
+</body>
+</html>
