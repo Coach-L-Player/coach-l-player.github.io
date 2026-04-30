@@ -1,0 +1,1001 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0,user-scalable=no">
+<title>Coach L Player</title>
+<link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Share+Tech+Mono&family=Rajdhani:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#05010e;--bg2:#0a0118;
+  --cyan:#00f5ff;--cyan2:#004d55;
+  --mag:#ff2d78;--mag2:#5a0028;
+  --amb:#ffb800;--amb2:#4a3600;
+  --grn:#00ff88;--pur:#9b59ff;
+  --txt:#b8d0e8;--dim:#3a5870;--mut:#0d1d2a;
+  --nav-h:62px;--bar-h:64px;
+}
+*{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent;
+  -webkit-user-select:none;user-select:none}
+input,textarea{-webkit-user-select:text;user-select:text}
+html,body{width:100%;height:100%;overflow:hidden;background:var(--bg);
+  color:var(--txt);font-family:'Rajdhani',sans-serif}
+body::after{content:'';position:fixed;inset:0;z-index:998;pointer-events:none;
+  background:repeating-linear-gradient(0deg,transparent,transparent 2px,rgba(0,0,0,.04) 2px,rgba(0,0,0,.04) 4px)}
+
+/* ════ PAGES ════ */
+#pages{position:fixed;top:0;left:0;right:0;bottom:calc(var(--nav-h) + var(--bar-h));overflow:hidden}
+.page{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;
+  padding:12px 16px 8px;overflow:hidden;
+  transition:transform .36s cubic-bezier(.4,0,.2,1)}
+.page.active{transform:translateX(0)}
+.page.go-left{transform:translateX(-100%)}
+.page.go-right{transform:translateX(100%)}
+#pg-music {background:radial-gradient(ellipse 90% 55% at 50% 0%,#160b3a 0%,var(--bg) 72%)}
+#pg-pod   {background:radial-gradient(ellipse 90% 55% at 50% 0%,#2a0018 0%,var(--bg) 72%)}
+#pg-radio {background:radial-gradient(ellipse 90% 55% at 50% 0%,#201200 0%,var(--bg) 72%)}
+
+/* ════ PAGE HEADER ════ */
+.ph{width:100%;display:flex;align-items:center;justify-content:space-between;
+  flex-shrink:0;margin-bottom:6px}
+.ph-left .pg-title{font-family:'Orbitron';font-size:.65rem;font-weight:900;letter-spacing:5px;text-transform:uppercase}
+.ph-left .pg-sub{font-family:'Share Tech Mono';font-size:.5rem;color:var(--dim);letter-spacing:3px;margin-top:1px}
+.cc{color:var(--cyan);text-shadow:0 0 16px rgba(0,245,255,.7)}
+.cm{color:var(--mag);text-shadow:0 0 16px rgba(255,45,120,.7)}
+.ca{color:var(--amb);text-shadow:0 0 16px rgba(255,184,0,.7)}
+
+/* ════ DIAL ════ */
+.dial-section{display:flex;flex-direction:column;align-items:center;flex-shrink:0}
+.dial-wrap{position:relative;width:150px;height:150px;display:flex;align-items:center;justify-content:center}
+.dial-cv{position:absolute;inset:0;width:100%;height:100%;pointer-events:none}
+.dial-knob{
+  width:106px;height:106px;border-radius:50%;z-index:2;position:relative;
+  cursor:grab;touch-action:none;
+  display:flex;align-items:center;justify-content:center;
+  background:
+    radial-gradient(circle at 36% 28%,rgba(255,255,255,.38) 0%,transparent 44%),
+    radial-gradient(circle at 64% 72%,rgba(0,0,0,.5) 0%,transparent 38%),
+    radial-gradient(circle at 50% 50%,#636375 0%,#2e2e40 30%,#151525 65%,#070712 100%);
+  box-shadow:
+    0 10px 40px rgba(0,0,0,.95),
+    inset 0 3px 8px rgba(255,255,255,.24),
+    inset 0 -3px 10px rgba(0,0,0,.85),
+    0 0 0 2px rgba(255,255,255,.05),
+    0 0 0 5px rgba(0,0,0,.4)}
+.dial-knob:active{cursor:grabbing}
+.dial-knob::before{content:'';position:absolute;inset:8px;border-radius:50%;
+  background:repeating-conic-gradient(from 0deg,rgba(255,255,255,.022) 0deg,rgba(0,0,0,.022) 4deg)}
+.dial-knob::after{content:'';position:absolute;inset:0;border-radius:50%;
+  background:radial-gradient(circle at 40% 28%,rgba(255,255,255,.13) 0%,transparent 55%)}
+.dial-tick{position:absolute;width:3px;height:24px;border-radius:2px;
+  bottom:50%;left:50%;transform-origin:bottom center;pointer-events:none;z-index:3}
+.tc{background:linear-gradient(to top,var(--cyan),transparent);box-shadow:0 0 10px var(--cyan)}
+.tm{background:linear-gradient(to top,var(--mag),transparent);box-shadow:0 0 10px var(--mag)}
+.ta{background:linear-gradient(to top,var(--amb),transparent);box-shadow:0 0 10px var(--amb)}
+.dial-pct{font-family:'Orbitron';font-size:1.1rem;font-weight:900;color:#fff;margin-top:6px;
+  letter-spacing:2px;text-shadow:0 0 18px rgba(255,255,255,.5)}
+.dial-lbl{font-family:'Share Tech Mono';font-size:.48rem;color:var(--dim);letter-spacing:3px;margin-bottom:4px}
+
+/* ════ VOLUME PILLS (music page only) ════ */
+.vpills{display:grid;grid-template-columns:repeat(4,1fr);gap:6px;
+  width:100%;max-width:300px;flex-shrink:0;margin-bottom:8px}
+.vp{background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.09);
+  border-radius:999px;color:var(--txt);font-family:'Rajdhani';font-size:.75rem;font-weight:600;
+  padding:8px 2px;text-align:center;cursor:pointer;transition:all .18s}
+.vp:active{transform:scale(.92)}
+.vp.pc:hover,.vp.pc.on{background:var(--cyan);color:#000;box-shadow:0 0 14px rgba(0,245,255,.5);border-color:var(--cyan)}
+.vp-max{font-size:.88rem;font-weight:800}
+
+/* ════ STATION CARDS (radio page) ════ */
+.filter-tabs{display:flex;gap:5px;width:100%;overflow-x:auto;flex-shrink:0;
+  padding-bottom:2px;margin-bottom:8px;scrollbar-width:none}
+.filter-tabs::-webkit-scrollbar{display:none}
+.ft{background:rgba(255,184,0,.05);border:1px solid rgba(255,184,0,.1);
+  border-radius:3px;color:var(--dim);font-family:'Orbitron';font-size:.4rem;
+  font-weight:700;letter-spacing:2px;text-transform:uppercase;
+  padding:6px 10px;cursor:pointer;white-space:nowrap;transition:all .2s;flex-shrink:0}
+.ft.on{background:rgba(255,184,0,.14);border-color:var(--amb);color:var(--amb);text-shadow:0 0 10px rgba(255,184,0,.7)}
+
+.stn-grid{width:100%;display:grid;grid-template-columns:1fr 1fr;gap:7px;
+  overflow-y:auto;flex:1;min-height:0;padding-right:2px}
+.stn-grid::-webkit-scrollbar{width:2px}
+.stn-grid::-webkit-scrollbar-thumb{background:rgba(255,184,0,.2);border-radius:2px}
+
+.sc{background:rgba(255,184,0,.04);border:1px solid rgba(255,184,0,.09);
+  border-radius:6px;cursor:pointer;padding:10px 8px;text-align:center;
+  transition:all .22s;position:relative;overflow:hidden}
+.sc:hover,.sc.on{background:rgba(255,184,0,.12);border-color:rgba(255,184,0,.5)}
+.sc.on{box-shadow:0 0 16px rgba(255,184,0,.25)}
+.sc.pinned{border-color:rgba(255,184,0,.3);background:rgba(255,184,0,.07)}
+.sc-flag{font-size:1.3rem;margin-bottom:3px;display:block}
+.sc-name{font-family:'Orbitron';font-size:.48rem;font-weight:700;color:var(--txt);letter-spacing:.5px;
+  white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin-bottom:2px}
+.sc.on .sc-name{color:var(--amb)}
+.sc-genre{font-family:'Share Tech Mono';font-size:.48rem;color:var(--dim);letter-spacing:1px;
+  white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.sc-live{position:absolute;top:5px;right:5px;width:6px;height:6px;border-radius:50%;
+  background:var(--grn);box-shadow:0 0 6px var(--grn);display:none;
+  animation:blink 1.3s ease-in-out infinite}
+.sc.on .sc-live{display:block}
+@keyframes blink{0%,100%{opacity:1}50%{opacity:.2}}
+
+/* ════ PODCAST PILLS ════ */
+.pod-pills{display:flex;gap:6px;width:100%;flex-shrink:0;margin-bottom:8px;flex-wrap:wrap}
+.pp{flex:1;min-width:0;background:rgba(255,45,120,.05);border:1px solid rgba(255,45,120,.1);
+  border-radius:5px;color:var(--dim);font-family:'Orbitron';font-size:.43rem;
+  font-weight:700;letter-spacing:1px;text-transform:uppercase;
+  padding:9px 6px;text-align:center;cursor:pointer;transition:all .2s}
+.pp.on{background:rgba(255,45,120,.15);border-color:var(--mag);color:var(--mag);
+  text-shadow:0 0 10px rgba(255,45,120,.7)}
+.pp-rss{border-color:rgba(155,89,255,.2);color:rgba(155,89,255,.6);background:rgba(155,89,255,.04)}
+.pp-rss.on{background:rgba(155,89,255,.15);border-color:var(--pur);color:var(--pur);
+  text-shadow:0 0 10px rgba(155,89,255,.7)}
+
+.embed-area{width:100%;flex:1;min-height:0;overflow-y:auto;display:flex;flex-direction:column;gap:8px}
+.embed-area::-webkit-scrollbar{width:2px}
+.embed-area::-webkit-scrollbar-thumb{background:rgba(255,45,120,.2);border-radius:2px}
+.embed-wrap{border-radius:6px;overflow:hidden;border:1px solid rgba(255,45,120,.12);flex-shrink:0}
+.embed-note{font-family:'Share Tech Mono';font-size:.5rem;color:var(--dim);letter-spacing:1px;
+  text-align:center;padding:6px;flex-shrink:0}
+
+/* RSS loader */
+.rss-loader{width:100%;padding:10px 0;flex-shrink:0}
+.rss-row{display:flex;gap:6px;margin-bottom:8px}
+.ri{flex:1;background:rgba(155,89,255,.05);border:1px solid rgba(155,89,255,.12);
+  border-radius:4px;color:var(--txt);font-family:'Share Tech Mono';font-size:.6rem;
+  padding:9px 10px;outline:none;min-width:0}
+.ri:focus{border-color:var(--pur)}
+.ri::placeholder{color:var(--dim)}
+.rb{background:transparent;border:1px solid var(--pur);color:var(--pur);
+  font-family:'Orbitron';font-size:.42rem;font-weight:700;letter-spacing:1px;
+  padding:9px 12px;border-radius:4px;cursor:pointer;white-space:nowrap;transition:all .2s}
+.rb:hover{background:var(--pur);color:#fff}
+.ep-list{display:flex;flex-direction:column;gap:5px}
+.ep{display:flex;gap:8px;align-items:center;padding:8px 10px;
+  background:rgba(155,89,255,.04);border:1px solid rgba(155,89,255,.09);
+  border-radius:4px;cursor:pointer;transition:all .2s}
+.ep:hover,.ep.on{background:rgba(155,89,255,.12);border-color:rgba(155,89,255,.3)}
+.ep-pb{width:28px;height:28px;border-radius:50%;border:1px solid var(--pur);color:var(--pur);
+  background:none;cursor:pointer;font-size:.7rem;display:flex;align-items:center;
+  justify-content:center;flex-shrink:0;transition:all .2s}
+.ep-pb:hover,.ep.on .ep-pb{background:var(--pur);color:#fff}
+.ep-inf{flex:1;min-width:0}
+.ep-t{font-size:.78rem;font-weight:600;color:var(--txt);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.ep-d{font-family:'Share Tech Mono';font-size:.5rem;color:var(--dim)}
+
+/* ════ MUSIC PAGE ════ */
+.now-row{width:100%;text-align:center;flex-shrink:0;margin-bottom:4px}
+.now-t{font-size:.88rem;font-weight:700;color:#fff;overflow:hidden;text-overflow:ellipsis;
+  white-space:nowrap;max-width:260px;margin:0 auto}
+.now-s{font-family:'Share Tech Mono';font-size:.52rem;color:var(--dim);letter-spacing:2px}
+.add-row{display:flex;gap:6px;width:100%;max-width:300px;flex-shrink:0;margin-bottom:6px}
+.ui{flex:1;background:rgba(0,245,255,.04);border:1px solid rgba(0,245,255,.08);
+  border-radius:4px;color:var(--txt);font-family:'Share Tech Mono';font-size:.6rem;
+  padding:8px 10px;outline:none;transition:border-color .2s;min-width:0}
+.ui:focus{border-color:var(--cyan)}
+.ui::placeholder{color:var(--dim)}
+.ab{background:transparent;border:1px solid var(--cyan);color:var(--cyan);
+  font-family:'Orbitron';font-size:.42rem;font-weight:700;letter-spacing:1px;
+  padding:8px 10px;border-radius:4px;cursor:pointer;white-space:nowrap;transition:all .2s}
+.ab:hover{background:var(--cyan);color:#000}
+.fb{border-color:var(--pur);color:var(--pur)}
+.fb:hover{background:var(--pur);color:#fff}
+
+.music-scroll{width:100%;max-width:300px;flex:1;min-height:0;overflow-y:auto;display:flex;flex-direction:column;gap:5px}
+.music-scroll::-webkit-scrollbar{width:2px}
+.music-scroll::-webkit-scrollbar-thumb{background:rgba(0,245,255,.15);border-radius:2px}
+.ti{display:flex;align-items:center;gap:8px;padding:7px 9px;border-radius:4px;
+  border:1px solid transparent;cursor:pointer;transition:all .2s;flex-shrink:0}
+.ti:hover,.ti.on{background:rgba(0,245,255,.07);border-color:rgba(0,245,255,.15)}
+.ti.on .tn{color:var(--cyan)}
+.tn-n{font-family:'Share Tech Mono';font-size:.5rem;color:var(--mut);width:14px;flex-shrink:0}
+.tn{flex:1;font-size:.8rem;font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.td{background:none;border:none;cursor:pointer;color:var(--mut);font-size:.65rem;
+  opacity:0;transition:.2s;flex-shrink:0}
+.ti:hover .td{opacity:1}
+.td:hover{color:var(--mag)}
+
+/* Online music section */
+.online-hdr{font-family:'Orbitron';font-size:.42rem;font-weight:700;letter-spacing:3px;
+  color:var(--dim);text-transform:uppercase;padding:6px 0 4px;cursor:pointer;
+  display:flex;align-items:center;gap:6px;width:100%;max-width:300px;flex-shrink:0}
+.online-hdr::after{content:'';flex:1;height:1px;background:rgba(0,245,255,.07)}
+.online-arrow{transition:transform .2s}
+.online-arrow.open{transform:rotate(90deg)}
+.online-music-grid{display:grid;grid-template-columns:1fr 1fr;gap:5px;width:100%;max-width:300px;flex-shrink:0}
+.osc{background:rgba(0,245,255,.04);border:1px solid rgba(0,245,255,.08);border-radius:5px;
+  padding:8px 6px;text-align:center;cursor:pointer;transition:all .2s}
+.osc:hover,.osc.on{background:rgba(0,245,255,.12);border-color:rgba(0,245,255,.4)}
+.osc-icon{font-size:1rem;display:block;margin-bottom:2px}
+.osc-name{font-family:'Orbitron';font-size:.4rem;font-weight:700;color:var(--txt);letter-spacing:.5px}
+.osc.on .osc-name{color:var(--cyan)}
+.osc-genre{font-family:'Share Tech Mono';font-size:.44rem;color:var(--dim)}
+
+/* embed detection banner */
+.embed-banner{width:100%;max-width:300px;background:rgba(0,245,255,.05);
+  border:1px solid rgba(0,245,255,.15);border-radius:5px;padding:8px 10px;
+  flex-shrink:0;display:none}
+.embed-banner iframe{width:100%;border:none;border-radius:3px}
+
+/* ════ MINI PLAYER BAR ════ */
+#bar{position:fixed;left:0;right:0;bottom:var(--nav-h);height:var(--bar-h);
+  background:rgba(4,1,12,.97);border-top:1px solid rgba(0,245,255,.08);
+  backdrop-filter:blur(24px);display:flex;align-items:center;padding:0 12px;gap:10px;z-index:200}
+.bar-seek{position:absolute;top:0;left:0;right:0;height:2px;background:rgba(255,255,255,.05);overflow:hidden}
+.bar-fill{height:100%;width:0%;background:linear-gradient(90deg,var(--cyan),var(--mag));
+  box-shadow:0 0 5px var(--cyan);transition:width .8s linear}
+.bar-art{width:40px;height:40px;border-radius:5px;flex-shrink:0;
+  background:linear-gradient(135deg,#1a0535,#08001a);border:1px solid rgba(0,245,255,.1);
+  display:flex;align-items:center;justify-content:center;font-size:1rem}
+.bar-info{flex:1;min-width:0}
+.bar-title{font-size:.8rem;font-weight:600;color:#fff;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.bar-sub{font-family:'Share Tech Mono';font-size:.5rem;color:var(--dim);letter-spacing:1px}
+.bar-ctrl{display:flex;align-items:center;gap:3px;flex-shrink:0}
+.bc{background:none;border:none;cursor:pointer;color:var(--dim);font-size:.88rem;
+  width:28px;height:28px;border-radius:50%;display:flex;align-items:center;justify-content:center;transition:all .2s}
+.bc:hover{color:#fff}
+#ppBtn{width:38px;height:38px;border:1.5px solid var(--cyan);color:var(--cyan);
+  box-shadow:0 0 12px rgba(0,245,255,.35)}
+#ppBtn.playing{border-color:var(--mag);color:var(--mag);box-shadow:0 0 12px rgba(255,45,120,.35)}
+
+/* ════ BOTTOM NAV ════ */
+nav{position:fixed;bottom:0;left:0;right:0;height:var(--nav-h);
+  background:rgba(4,1,12,.99);border-top:1px solid rgba(255,255,255,.04);display:flex;z-index:200}
+.nb{flex:1;background:none;border:none;cursor:pointer;
+  display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;
+  color:var(--dim);font-family:'Orbitron';font-size:.4rem;font-weight:700;
+  letter-spacing:2px;text-transform:uppercase;transition:all .2s;position:relative}
+.nb .ni{font-size:1.1rem;transition:all .2s}
+.nb.nc.on{color:var(--cyan)}.nb.nc.on .ni{filter:drop-shadow(0 0 5px var(--cyan))}
+.nb.nm.on{color:var(--mag)}.nb.nm.on .ni{filter:drop-shadow(0 0 5px var(--mag))}
+.nb.na.on{color:var(--amb)}.nb.na.on .ni{filter:drop-shadow(0 0 5px var(--amb))}
+.nb::after{content:'';position:absolute;top:0;left:50%;transform:translateX(-50%);
+  width:0;height:2px;border-radius:0 0 3px 3px;transition:width .3s}
+.nb.nc.on::after{width:44%;background:var(--cyan)}
+.nb.nm.on::after{width:44%;background:var(--mag)}
+.nb.na.on::after{width:44%;background:var(--amb)}
+
+/* Radio NP band */
+.np-band{width:100%;background:rgba(255,184,0,.04);border:1px solid rgba(255,184,0,.1);
+  border-radius:5px;padding:8px 10px;flex-shrink:0;display:flex;align-items:center;gap:10px;margin-bottom:6px}
+.live-dot{width:7px;height:7px;border-radius:50%;background:var(--grn);
+  box-shadow:0 0 7px var(--grn);flex-shrink:0;animation:blink 1.3s ease-in-out infinite}
+.np-txt{flex:1;min-width:0}
+.np-t{font-size:.8rem;font-weight:600;color:#fff;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.np-a{font-family:'Share Tech Mono';font-size:.52rem;color:var(--dim)}
+.r-pbtn{width:44px;height:44px;border-radius:50%;border:2px solid var(--amb);color:var(--amb);
+  background:none;cursor:pointer;font-size:1rem;
+  display:flex;align-items:center;justify-content:center;
+  box-shadow:0 0 14px rgba(255,184,0,.35);transition:all .22s;flex-shrink:0}
+.r-pbtn:hover,.r-pbtn.on{background:var(--amb);color:#000;box-shadow:0 0 28px rgba(255,184,0,.6)}
+
+/* Add custom station */
+.add-stn-row{display:flex;gap:5px;width:100%;flex-shrink:0;margin-top:6px}
+.si{flex:1;background:rgba(255,184,0,.04);border:1px solid rgba(255,184,0,.09);
+  border-radius:4px;color:var(--txt);font-family:'Share Tech Mono';font-size:.58rem;
+  padding:7px 8px;outline:none;min-width:0}
+.si:focus{border-color:var(--amb)}
+.si::placeholder{color:var(--dim)}
+.sa{background:transparent;border:1px solid var(--amb);color:var(--amb);
+  font-family:'Orbitron';font-size:.4rem;font-weight:700;letter-spacing:1px;
+  padding:7px 10px;border-radius:4px;cursor:pointer;white-space:nowrap;transition:all .2s}
+.sa:hover{background:var(--amb);color:#000}
+
+/* ════ TOAST ════ */
+#toast{position:fixed;bottom:calc(var(--nav-h) + var(--bar-h) + 10px);left:50%;
+  transform:translateX(-50%);background:rgba(0,245,255,.1);border:1px solid var(--cyan);
+  color:var(--cyan);font-family:'Share Tech Mono';font-size:.56rem;letter-spacing:2px;
+  padding:7px 18px;border-radius:4px;z-index:900;opacity:0;transition:opacity .25s;
+  pointer-events:none;white-space:nowrap;max-width:90vw;text-align:center}
+#toast.on{opacity:1}
+#toast.err{border-color:var(--mag);color:var(--mag);background:rgba(255,45,120,.08)}
+
+/* Loading state */
+.loading-txt{font-family:'Share Tech Mono';font-size:.55rem;color:var(--dim);
+  letter-spacing:2px;text-align:center;padding:14px}
+.empty-txt{font-family:'Share Tech Mono';font-size:.55rem;color:var(--mut);
+  letter-spacing:1px;text-align:center;padding:16px}
+</style>
+</head>
+<body>
+
+<!-- ═══════════════ PAGES ═══════════════ -->
+<div id="pages">
+
+<!-- ════ MUSIC ════ -->
+<div class="page active" id="pg-music">
+  <div class="ph">
+    <div class="ph-left">
+      <div class="pg-title cc">&#9835;&nbsp;Music</div>
+      <div class="pg-sub">COACH L PLAYER</div>
+    </div>
+    <label class="ab fb" style="cursor:pointer">
+      &#128193; FILE
+      <input type="file" id="fileIn" accept="audio/*" multiple style="display:none">
+    </label>
+  </div>
+
+  <div class="now-row">
+    <div class="now-t" id="mNowT">— Select a Track —</div>
+    <div class="now-s" id="mNowS">ADD A URL OR LOCAL FILE</div>
+  </div>
+
+  <div class="dial-section">
+    <div class="dial-wrap">
+      <canvas class="dial-cv" id="mCv"></canvas>
+      <div class="dial-knob" id="mKnob">
+        <div class="dial-tick tc" id="mTick" style="transform:translateX(-50%) rotate(-135deg)"></div>
+      </div>
+    </div>
+    <div class="dial-pct" id="mPct">80%</div>
+    <div class="dial-lbl">VOLUME — DRAG OR TAP BELOW</div>
+  </div>
+
+  <div class="vpills">
+    <div class="vp pc" data-v="0">MUTE</div>
+    <div class="vp pc" data-v="0.3">30%</div>
+    <div class="vp pc" data-v="0.6">60%</div>
+    <div class="vp pc" data-v="1">100%</div>
+    <div class="vp pc" data-v="1.25">125%</div>
+    <div class="vp pc" data-v="1.5">150%</div>
+    <div class="vp pc" data-v="1.75">175%</div>
+    <div class="vp pc vp-max" data-v="2">MAX</div>
+  </div>
+
+  <div class="add-row">
+    <input type="text" class="ui" id="urlIn" placeholder="MP3 / stream / YouTube / SoundCloud URL...">
+    <button class="ab" id="addBtn">ADD</button>
+  </div>
+
+  <!-- embed area for YouTube / SoundCloud -->
+  <div class="embed-banner" id="extEmbed"></div>
+
+  <div class="music-scroll" id="trackList">
+    <div class="empty-txt">Playlist empty.</div>
+  </div>
+
+  <!-- online music stations accordion -->
+  <div class="online-hdr" id="onlineHdr">
+    <span class="online-arrow" id="onlineArrow">&#9654;</span>
+    &#127760; Online Music Stations
+  </div>
+  <div id="onlineSection" style="display:none;width:100%;max-width:300px;flex-shrink:0">
+    <div class="online-music-grid" id="onlineMusicGrid"></div>
+  </div>
+</div>
+
+<!-- ════ PODCASTS ════ -->
+<div class="page go-right" id="pg-pod">
+  <div class="ph">
+    <div class="ph-left">
+      <div class="pg-title cm">&#127897;&nbsp;Podcasts</div>
+      <div class="pg-sub">COACH L NETWORK</div>
+    </div>
+  </div>
+
+  <div class="dial-section">
+    <div class="dial-wrap">
+      <canvas class="dial-cv" id="pCv"></canvas>
+      <div class="dial-knob" id="pKnob">
+        <div class="dial-tick tm" id="pTick" style="transform:translateX(-50%) rotate(-135deg)"></div>
+      </div>
+    </div>
+    <div class="dial-pct" id="pPct">80%</div>
+    <div class="dial-lbl">VOLUME — DRAG OR TAP DIAL</div>
+  </div>
+
+  <div class="pod-pills">
+    <div class="pp on" data-pod="0">&#127897; Coach L Academy</div>
+    <div class="pp" data-pod="1">&#127897; Unplugged</div>
+    <div class="pp pp-rss" data-pod="rss">&#43; Custom RSS</div>
+  </div>
+
+  <div class="embed-area" id="embedArea">
+    <!-- embed 0 -->
+    <div id="em0" class="embed-wrap">
+      <iframe src="https://player.rss.com/coach-l-academy/latest?theme=dark&v=2"
+        title="Coach L Academy" width="100%" height="202" frameborder="0"
+        allow="accelerometer;autoplay;clipboard-write;encrypted-media;gyroscope;picture-in-picture"
+        allowfullscreen scrolling="no"></iframe>
+    </div>
+    <!-- embed 1 (hidden) -->
+    <div id="em1" class="embed-wrap" style="display:none">
+      <iframe src="https://player.rss.com/coach-l-unplugged/latest?theme=dark&v=2"
+        title="Coach L Unplugged" width="100%" height="202" frameborder="0"
+        allow="accelerometer;autoplay;clipboard-write;encrypted-media;gyroscope;picture-in-picture"
+        allowfullscreen scrolling="no"></iframe>
+    </div>
+    <!-- RSS player (hidden) -->
+    <div id="emRss" style="display:none">
+      <div class="rss-loader">
+        <div class="rss-row">
+          <input type="text" class="ri" id="rssIn" placeholder="Paste RSS feed URL...">
+          <button class="rb" id="rssBtn">LOAD</button>
+        </div>
+        <div id="epList" class="ep-list"></div>
+      </div>
+    </div>
+    <div class="embed-note" id="embedNote">
+      &#9432; Coach L embeds have their own built-in controls. Custom RSS plays through the volume dial.
+    </div>
+  </div>
+</div>
+
+<!-- ════ RADIO ════ -->
+<div class="page go-right" id="pg-radio">
+  <div class="ph">
+    <div class="ph-left">
+      <div class="pg-title ca">&#128251;&nbsp;Radio</div>
+      <div class="pg-sub">COACH L PLAYER — LIVE</div>
+    </div>
+    <button class="r-pbtn" id="rPlayBtn">&#9654;</button>
+  </div>
+
+  <div class="np-band">
+    <div class="live-dot"></div>
+    <div class="np-txt">
+      <div class="np-t" id="rNowT">Coach L Radio</div>
+      <div class="np-a" id="rNowA">Tap a station to tune in</div>
+    </div>
+  </div>
+
+  <div class="dial-section">
+    <div class="dial-wrap">
+      <canvas class="dial-cv" id="rCv"></canvas>
+      <div class="dial-knob" id="rKnob">
+        <div class="dial-tick ta" id="rTick" style="transform:translateX(-50%) rotate(-135deg)"></div>
+      </div>
+    </div>
+    <div class="dial-pct" id="rPct">80%</div>
+    <div class="dial-lbl">VOLUME — DRAG DIAL OR DEVICE BUTTONS</div>
+  </div>
+
+  <div class="filter-tabs" id="filterTabs">
+    <div class="ft on" data-cat="all">&#9733; All</div>
+    <div class="ft" data-cat="sa">&#127480;&#127462; South Africa</div>
+    <div class="ft" data-cat="gospel">&#10013; Gospel</div>
+    <div class="ft" data-cat="world">&#127760; World</div>
+    <div class="ft" data-cat="music">&#127925; Music</div>
+  </div>
+
+  <div class="stn-grid" id="stnGrid">
+    <div class="loading-txt" style="grid-column:span 2">Loading stations...</div>
+  </div>
+
+  <div class="add-stn-row">
+    <input type="text" class="si" id="stnUrlIn" placeholder="Custom station stream URL...">
+    <input type="text" class="si" id="stnNameIn" placeholder="Name" style="max-width:90px">
+    <button class="sa" id="addStnBtn">&#43;</button>
+  </div>
+</div>
+
+</div><!-- /pages -->
+
+<!-- ═══════════ MINI BAR ═══════════ -->
+<div id="bar">
+  <div class="bar-seek"><div class="bar-fill" id="barFill"></div></div>
+  <div class="bar-art" id="barArt">&#9835;</div>
+  <div class="bar-info">
+    <div class="bar-title" id="barT">Coach L Player</div>
+    <div class="bar-sub" id="barS">SELECT A SOURCE TO BEGIN</div>
+  </div>
+  <div class="bar-ctrl">
+    <button class="bc" id="prevBtn">&#9664;&#9664;</button>
+    <button class="bc" id="ppBtn">&#9654;</button>
+    <button class="bc" id="nextBtn">&#9654;&#9654;</button>
+  </div>
+</div>
+
+<!-- ═══════════ NAV ═══════════ -->
+<nav>
+  <button class="nb nc on" data-pg="music"><span class="ni">&#9835;</span>Music</button>
+  <button class="nb nm"    data-pg="pod"  ><span class="ni">&#127897;</span>Podcasts</button>
+  <button class="nb na"   data-pg="radio"><span class="ni">&#128251;</span>Radio</button>
+</nav>
+
+<div id="toast"></div>
+
+<!-- ═══════════ SCRIPT ═══════════ -->
+<script>
+/* ── PAGE NAV ── */
+const pgMap = {music:document.getElementById('pg-music'),pod:document.getElementById('pg-pod'),radio:document.getElementById('pg-radio')};
+const pgOrder = ['music','pod','radio'];
+let curPg = 'music';
+
+document.querySelectorAll('.nb').forEach(b => b.addEventListener('click', () => goPage(b.dataset.pg)));
+
+function goPage(name){
+  if(name === curPg) return;
+  const ci = pgOrder.indexOf(curPg), ni = pgOrder.indexOf(name);
+  pgMap[curPg].classList.remove('active');
+  pgMap[curPg].classList.add(ni > ci ? 'go-left' : 'go-right');
+  pgMap[name].classList.remove('go-left','go-right');
+  pgMap[name].classList.add('active');
+  document.querySelectorAll('.nb').forEach(b => b.classList.toggle('on', b.dataset.pg === name));
+  curPg = name;
+  setTimeout(redrawAll, 50);
+}
+
+/* ── AUDIO ENGINE ── */
+const aud = new Audio();
+aud.crossOrigin = 'anonymous';
+let vol = 0.8, playing = false, mode = 'idle', curIdx = -1;
+let actx, gainNode, srcNode, connected = false;
+
+function ensureCtx(){
+  if(!actx){
+    actx = new(window.AudioContext || window.webkitAudioContext)();
+    gainNode = actx.createGain();
+    gainNode.connect(actx.destination);
+  }
+  if(!connected){
+    try{ srcNode = actx.createMediaElementSource(aud); srcNode.connect(gainNode); connected = true; }catch(e){}
+  }
+  if(actx.state === 'suspended') actx.resume();
+}
+
+function applyVol(v){
+  vol = Math.max(0, Math.min(2, v));
+  if(gainNode) gainNode.gain.value = vol;
+  aud.volume = Math.min(1, vol);
+  redrawAll();
+}
+
+function playAudio(url, title, sub, m){
+  ensureCtx();
+  aud.src = url; aud.load();
+  aud.play().then(() => {
+    playing = true; mode = m;
+    updatePP(); setBar(title, sub);
+    setupMediaSession(title, sub);
+  }).catch(e => toast('Stream error — check URL or CORS', true));
+}
+
+function togglePlay(){
+  if(!aud.src){ toast('Nothing loaded', true); return; }
+  ensureCtx();
+  if(playing){ aud.pause(); playing = false; }
+  else { aud.play().then(() => { playing = true; }).catch(() => {}); }
+  updatePP();
+}
+
+function updatePP(){
+  const b = document.getElementById('ppBtn');
+  b.innerHTML = playing ? '&#9646;&#9646;' : '&#9654;';
+  b.classList.toggle('playing', playing);
+  // radio play button
+  const rb = document.getElementById('rPlayBtn');
+  if(mode === 'radio'){
+    rb.innerHTML = playing ? '&#9646;&#9646;' : '&#9654;';
+    rb.classList.toggle('on', playing);
+  } else {
+    rb.innerHTML = '&#9654;'; rb.classList.remove('on');
+  }
+}
+
+function setBar(t, s){
+  document.getElementById('barT').textContent = t;
+  document.getElementById('barS').textContent = s;
+}
+
+aud.addEventListener('timeupdate', () => {
+  if(aud.duration) document.getElementById('barFill').style.width = (aud.currentTime / aud.duration * 100) + '%';
+});
+
+aud.addEventListener('ended', () => {
+  if(mode === 'music') nextTrack();
+  else { playing = false; updatePP(); }
+});
+
+document.getElementById('ppBtn').addEventListener('click', togglePlay);
+document.getElementById('prevBtn').addEventListener('click', prevTrack);
+document.getElementById('nextBtn').addEventListener('click', nextTrack);
+document.getElementById('rPlayBtn').addEventListener('click', () => {
+  if(mode === 'radio' && playing){ aud.pause(); playing = false; updatePP(); }
+  else tuneStation(0, true);
+});
+
+/* ── MEDIA SESSION (phone media keys) ── */
+function setupMediaSession(title, artist){
+  if(!('mediaSession' in navigator)) return;
+  navigator.mediaSession.metadata = new MediaMetadata({ title, artist, album:'Coach L Player' });
+  navigator.mediaSession.setActionHandler('play', () => { aud.play(); playing = true; updatePP(); });
+  navigator.mediaSession.setActionHandler('pause', () => { aud.pause(); playing = false; updatePP(); });
+  navigator.mediaSession.setActionHandler('previoustrack', prevTrack);
+  navigator.mediaSession.setActionHandler('nexttrack', nextTrack);
+}
+
+/* ── PLAYLIST ── */
+let pl = JSON.parse(localStorage.getItem('clp_playlist') || '[]');
+function savePl(){ localStorage.setItem('clp_playlist', JSON.stringify(pl)); }
+
+function renderPl(){
+  const el = document.getElementById('trackList');
+  if(!pl.length){ el.innerHTML = '<div class="empty-txt">Playlist empty.<br>Add a URL or file above.</div>'; return; }
+  el.innerHTML = pl.map((t, i) => `
+    <div class="ti ${i === curIdx ? 'on' : ''}" data-i="${i}">
+      <span class="tn-n">${i + 1}</span>
+      <span class="tn">${esc(t.name)}</span>
+      <button class="td" data-d="${i}">&#10005;</button>
+    </div>`).join('');
+}
+
+document.getElementById('trackList').addEventListener('click', e => {
+  const d = e.target.closest('[data-d]');
+  if(d){ remTrack(parseInt(d.dataset.d)); return; }
+  const r = e.target.closest('.ti');
+  if(r) playTrack(parseInt(r.dataset.i));
+});
+
+function playTrack(i){
+  curIdx = i; const t = pl[i];
+  document.getElementById('mNowT').textContent = t.name;
+  document.getElementById('mNowS').textContent = 'TRACK ' + (i+1) + ' / ' + pl.length;
+  playAudio(t.url, t.name, 'MUSIC', 'music'); renderPl();
+}
+function nextTrack(){ if(pl.length) playTrack((curIdx + 1) % pl.length); }
+function prevTrack(){ if(pl.length && mode === 'music') playTrack(curIdx <= 0 ? pl.length - 1 : curIdx - 1); }
+
+function remTrack(i){
+  pl.splice(i, 1);
+  if(curIdx === i){ aud.pause(); playing = false; updatePP(); curIdx = -1; }
+  else if(curIdx > i) curIdx--;
+  savePl(); renderPl();
+}
+
+/* URL type detection */
+document.getElementById('addBtn').addEventListener('click', () => handleUrl(document.getElementById('urlIn').value.trim()));
+document.getElementById('urlIn').addEventListener('keydown', e => { if(e.key === 'Enter') handleUrl(document.getElementById('urlIn').value.trim()); });
+
+function handleUrl(url){
+  if(!url){ toast('Enter a URL', true); return; }
+  if(url.includes('youtube.com/watch') || url.includes('youtu.be/')){
+    showExternalEmbed('youtube', url);
+  } else if(url.includes('soundcloud.com/')){
+    showExternalEmbed('soundcloud', url);
+  } else {
+    const name = url.split('/').pop().replace(/\?.*$/,'').replace(/\.[^.]+$/,'') || 'Stream';
+    pl.push({ name, url }); savePl(); renderPl();
+    document.getElementById('urlIn').value = '';
+    toast('Added: ' + name);
+  }
+}
+
+function showExternalEmbed(type, url){
+  const box = document.getElementById('extEmbed');
+  box.style.display = 'block';
+  if(type === 'youtube'){
+    const vid = url.match(/(?:v=|youtu\.be\/)([^&?/]+)/)?.[1];
+    if(!vid){ toast('Could not extract YouTube ID', true); return; }
+    box.innerHTML = `<div style="font-family:'Share Tech Mono';font-size:.5rem;color:var(--dim);margin-bottom:4px">&#9654; YouTube Embed</div>
+      <iframe width="100%" height="120" src="https://www.youtube.com/embed/${vid}" frameborder="0" allow="autoplay;clipboard-write;encrypted-media;picture-in-picture" allowfullscreen style="border-radius:4px"></iframe>`;
+  } else {
+    box.innerHTML = `<div style="font-family:'Share Tech Mono';font-size:.5rem;color:var(--dim);margin-bottom:4px">&#9654; SoundCloud Embed</div>
+      <iframe width="100%" height="120" src="https://w.soundcloud.com/player/?url=${encodeURIComponent(url)}&color=%2300f5ff&auto_play=false&hide_related=true" frameborder="no" style="border-radius:4px"></iframe>`;
+  }
+  document.getElementById('urlIn').value = '';
+  toast('Embedded — use player controls inside');
+}
+
+document.getElementById('fileIn').addEventListener('change', e => {
+  Array.from(e.target.files).forEach(f => {
+    pl.push({ name: f.name.replace(/\.[^.]+$/,''), url: URL.createObjectURL(f) });
+  });
+  savePl(); renderPl(); toast(e.target.files.length + ' file(s) added');
+});
+
+renderPl();
+
+/* ── ONLINE MUSIC STATIONS (music page section) ── */
+const ONLINE_MUSIC = [
+  {name:'SomaFM Groove', genre:'Ambient', icon:'🌊', url:'https://ice6.somafm.com/groovesalad-128-mp3'},
+  {name:'SomaFM Indie', genre:'Indie Pop', icon:'🎸', url:'https://ice6.somafm.com/indiepop-128-mp3'},
+  {name:'Swiss Jazz', genre:'Jazz', icon:'🎷', url:'https://stream.radioswissjazz.ch/web/mp3_128'},
+  {name:'Swiss Classic', genre:'Classical', icon:'🎻', url:'https://stream.radioswissclassic.ch/web/mp3_128'},
+  {name:'SomaFM Drone', genre:'Space/Ambient', icon:'🚀', url:'https://ice6.somafm.com/dronezone-128-mp3'},
+  {name:'Secret Agent', genre:'Jazz/Spy', icon:'🕵️', url:'https://ice6.somafm.com/secretagent-128-mp3'},
+];
+let onlineOpen = false, curOnline = -1;
+const onlineGrid = document.getElementById('onlineMusicGrid');
+onlineGrid.innerHTML = ONLINE_MUSIC.map((s, i) => `
+  <div class="osc" data-oi="${i}">
+    <span class="osc-icon">${s.icon}</span>
+    <div class="osc-name">${esc(s.name)}</div>
+    <div class="osc-genre">${esc(s.genre)}</div>
+  </div>`).join('');
+
+onlineGrid.addEventListener('click', e => {
+  const c = e.target.closest('[data-oi]');
+  if(!c) return;
+  const i = parseInt(c.dataset.oi);
+  curOnline = i;
+  const s = ONLINE_MUSIC[i];
+  onlineGrid.querySelectorAll('.osc').forEach((el,j) => el.classList.toggle('on', j === i));
+  document.getElementById('mNowT').textContent = s.name;
+  document.getElementById('mNowS').textContent = s.genre.toUpperCase() + ' — LIVE';
+  playAudio(s.url, s.name, s.genre.toUpperCase(), 'music-online');
+  curIdx = -1; renderPl();
+});
+
+document.getElementById('onlineHdr').addEventListener('click', () => {
+  onlineOpen = !onlineOpen;
+  document.getElementById('onlineSection').style.display = onlineOpen ? 'block' : 'none';
+  document.getElementById('onlineArrow').classList.toggle('open', onlineOpen);
+});
+
+/* ── PODCAST TABS ── */
+document.querySelectorAll('.pp').forEach(p => {
+  p.addEventListener('click', () => {
+    document.querySelectorAll('.pp').forEach(x => x.classList.remove('on'));
+    p.classList.add('on');
+    const id = p.dataset.pod;
+    document.getElementById('em0').style.display = id === '0' ? '' : 'none';
+    document.getElementById('em1').style.display = id === '1' ? '' : 'none';
+    document.getElementById('emRss').style.display = id === 'rss' ? '' : 'none';
+    document.getElementById('embedNote').style.display = id === 'rss' ? 'none' : '';
+  });
+});
+
+/* RSS Loader */
+document.getElementById('rssBtn').addEventListener('click', loadRSS);
+document.getElementById('rssIn').addEventListener('keydown', e => { if(e.key === 'Enter') loadRSS(); });
+
+let episodes = [];
+async function loadRSS(){
+  const url = document.getElementById('rssIn').value.trim();
+  if(!url){ toast('Enter an RSS URL', true); return; }
+  document.getElementById('epList').innerHTML = '<div class="loading-txt">Loading feed...</div>';
+  try{
+    const r = await fetch(`https://api.rss2json.com/v1/api.json?rss_url=${encodeURIComponent(url)}&count=30`);
+    const d = await r.json();
+    if(d.status !== 'ok') throw new Error(d.message || 'Feed error');
+    episodes = d.items || [];
+    renderEpisodes();
+    toast('Loaded ' + episodes.length + ' episodes');
+  } catch(e){
+    document.getElementById('epList').innerHTML = `<div class="empty-txt">Could not load feed.</div>`;
+    toast('RSS error', true);
+  }
+}
+
+function renderEpisodes(){
+  const el = document.getElementById('epList');
+  el.innerHTML = episodes.map((ep, i) => {
+    const hasAudio = ep.enclosure && ep.enclosure.link;
+    const date = ep.pubDate ? new Date(ep.pubDate).toLocaleDateString('en-ZA') : '';
+    return `<div class="ep ${!hasAudio ? 'disabled' : ''}" data-ei="${i}">
+      <button class="ep-pb" ${!hasAudio ? 'disabled' : ''}>&#9654;</button>
+      <div class="ep-inf">
+        <div class="ep-t">${esc(ep.title || 'Episode ' + (i+1))}</div>
+        <div class="ep-d">${date}</div>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+document.getElementById('epList').addEventListener('click', e => {
+  const ep = e.target.closest('[data-ei]');
+  if(!ep) return;
+  const i = parseInt(ep.dataset.ei);
+  const item = episodes[i];
+  if(!item || !item.enclosure || !item.enclosure.link) return;
+  document.querySelectorAll('.ep').forEach((x,j) => x.classList.toggle('on', j === i));
+  playAudio(item.enclosure.link, item.title || 'Episode', 'PODCAST', 'podcast');
+});
+
+/* ── RADIO STATIONS ── */
+const PINNED = {name:'Coach L Radio', genre:'Talk · Ministry · ZA', flag:'🎙️', url:'https://coach-l-radio.duckdns.org/listen/coach-l-radio/radio.mp3', cat:'all', pinned:true};
+
+let stations = JSON.parse(localStorage.getItem('clp_stations') || 'null') || [
+  PINNED,
+  {name:'BBC World Svc', genre:'News · World', flag:'🇬🇧', url:'https://stream.live.vc.bbcmedia.co.uk/bbc_world_service', cat:'world'},
+  {name:'BBC Radio 1', genre:'Pop · UK', flag:'🇬🇧', url:'https://stream.live.vc.bbcmedia.co.uk/bbc_radio_one', cat:'world'},
+  {name:'BBC Radio 2', genre:'Easy Listening', flag:'🇬🇧', url:'https://stream.live.vc.bbcmedia.co.uk/bbc_radio_two', cat:'world'},
+  {name:'SomaFM Groove', genre:'Ambient · Electronic', flag:'🌍', url:'https://ice6.somafm.com/groovesalad-128-mp3', cat:'music'},
+  {name:'SomaFM Indie Pop', genre:'Indie Pop', flag:'🌍', url:'https://ice6.somafm.com/indiepop-128-mp3', cat:'music'},
+  {name:'SomaFM Drone Zone', genre:'Space · Ambient', flag:'🚀', url:'https://ice6.somafm.com/dronezone-128-mp3', cat:'music'},
+  {name:'Secret Agent FM', genre:'Jazz · Spy', flag:'🕵️', url:'https://ice6.somafm.com/secretagent-128-mp3', cat:'music'},
+  {name:'Radio Swiss Jazz', genre:'Jazz · Smooth', flag:'🇨🇭', url:'https://stream.radioswissjazz.ch/web/mp3_128', cat:'music'},
+  {name:'Radio Swiss Classic', genre:'Classical', flag:'🇨🇭', url:'https://stream.radioswissclassic.ch/web/mp3_128', cat:'music'},
+  {name:'K-LOVE', genre:'Christian · CCM', flag:'✝️', url:'https://maestro.emfcdn.com/stream_for/k-love/web/aac', cat:'gospel'},
+  {name:'Air1 Radio', genre:'Christian · Worship', flag:'✝️', url:'https://maestro.emfcdn.com/stream_for/air1/web/aac', cat:'gospel'},
+  {name:'Dance Wave', genre:'Dance · EDM', flag:'💃', url:'https://dancewave.online/dance.mp3', cat:'music'},
+  {name:'Radio 702', genre:'Talk · SA', flag:'🇿🇦', url:'https://playerservices.streamtheworld.com/api/livestream-redirect/TALK702.mp3', cat:'sa'},
+  {name:'5FM', genre:'Hip-Hop · SA', flag:'🇿🇦', url:'https://playerservices.streamtheworld.com/api/livestream-redirect/SABC_5FM_SC', cat:'sa'},
+  {name:'Jacaranda FM', genre:'Afrikaans · SA', flag:'🇿🇦', url:'https://playerservices.streamtheworld.com/api/livestream-redirect/JACARANDA.mp3', cat:'sa'},
+  {name:'Metro FM', genre:'Urban · SA', flag:'🇿🇦', url:'https://playerservices.streamtheworld.com/api/livestream-redirect/METROFM_SC', cat:'sa'},
+];
+
+let curFilter = 'all', curStnIdx = -1;
+
+function saveStations(){ localStorage.setItem('clp_stations', JSON.stringify(stations)); }
+
+function renderStations(){
+  const el = document.getElementById('stnGrid');
+  const filtered = stations.map((s,i) => ({s,i}))
+    .filter(({s}) => curFilter === 'all' || s.cat === curFilter || s.pinned);
+  if(!filtered.length){
+    el.innerHTML = '<div class="loading-txt" style="grid-column:span 2">No stations in this category yet.</div>';
+    return;
+  }
+  el.innerHTML = filtered.map(({s,i}) => `
+    <div class="sc ${s.pinned ? 'pinned' : ''} ${i === curStnIdx ? 'on' : ''}" data-si="${i}">
+      <div class="sc-live"></div>
+      <span class="sc-flag">${s.flag || '📻'}</span>
+      <div class="sc-name">${esc(s.name)}</div>
+      <div class="sc-genre">${esc(s.genre || '')}</div>
+    </div>`).join('');
+}
+
+document.getElementById('stnGrid').addEventListener('click', e => {
+  const c = e.target.closest('[data-si]');
+  if(c) tuneStation(parseInt(c.dataset.si), false);
+});
+
+function tuneStation(i, isDefault){
+  curStnIdx = i;
+  const s = isDefault ? stations[0] : stations[i];
+  playAudio(s.url, s.name, s.genre || 'LIVE RADIO', 'radio');
+  document.getElementById('rNowT').textContent = s.name;
+  document.getElementById('rNowA').textContent = (s.genre || 'LIVE') + ' · STREAMING';
+  renderStations();
+}
+
+// Filter tabs
+document.getElementById('filterTabs').addEventListener('click', e => {
+  const f = e.target.closest('[data-cat]');
+  if(!f) return;
+  curFilter = f.dataset.cat;
+  document.querySelectorAll('.ft').forEach(x => x.classList.toggle('on', x.dataset.cat === curFilter));
+  renderStations();
+});
+
+// Add custom station
+document.getElementById('addStnBtn').addEventListener('click', () => {
+  const url = document.getElementById('stnUrlIn').value.trim();
+  if(!url){ toast('Enter a stream URL', true); return; }
+  const name = document.getElementById('stnNameIn').value.trim() || 'Station ' + (stations.length + 1);
+  const icons = ['📡','🔊','🎵','🌐','⚡','🎙️'];
+  stations.push({ name, genre:'Custom', flag:icons[stations.length % icons.length], url, cat:'all' });
+  saveStations(); renderStations();
+  document.getElementById('stnUrlIn').value = '';
+  document.getElementById('stnNameIn').value = '';
+  toast('Station added: ' + name);
+});
+
+renderStations();
+
+// Async load from Radio Browser API (bonus stations)
+async function fetchRadioBrowser(){
+  try{
+    const base = 'https://de1.api.radio-browser.info/json/stations';
+    const sa = await fetch(base + '/bycountrycodeexact/ZA?limit=10&hidebroken=true&order=clickcount').then(r=>r.json());
+    const gospel = await fetch(base + '/bytag/gospel?limit=6&hidebroken=true&order=clickcount').then(r=>r.json());
+    const newStns = [];
+    [...sa, ...gospel].forEach(s => {
+      if(!s.url_resolved || stations.some(x => x.name === s.name)) return;
+      newStns.push({
+        name: s.name.trim().substring(0,20),
+        genre: (s.tags||'').split(',')[0] || 'Radio',
+        flag: sa.includes(s) ? '🇿🇦' : '✝️',
+        url: s.url_resolved,
+        cat: sa.includes(s) ? 'sa' : 'gospel'
+      });
+    });
+    if(newStns.length){
+      stations = stations.concat(newStns);
+      saveStations(); renderStations();
+    }
+  } catch(e){ /* silent fail - hardcoded stations always available */ }
+}
+fetchRadioBrowser();
+
+// AzuraCast now-playing poll
+const RADIO_API = 'https://coach-l-radio.duckdns.org/api/nowplaying/coach-l-radio';
+async function pollNP(){
+  try{
+    const r = await fetch(RADIO_API, {cache:'no-store'});
+    if(!r.ok) return;
+    const d = await r.json();
+    const s = d?.now_playing?.song;
+    if(s){
+      document.getElementById('rNowT').textContent = s.title || 'Coach L Radio';
+      document.getElementById('rNowA').textContent = s.artist || 'LIVE';
+      if(mode === 'radio'){ setBar(s.title || 'Coach L Radio', s.artist || 'LIVE'); }
+    }
+  } catch(e){}
+}
+pollNP(); setInterval(pollNP, 30000);
+
+/* ── DIALS ── */
+const DIALS = [
+  {knob:document.getElementById('mKnob'),cv:document.getElementById('mCv'),tick:document.getElementById('mTick'),pct:document.getElementById('mPct'),c1:'#00f5ff',c2:'#9b59ff'},
+  {knob:document.getElementById('pKnob'),cv:document.getElementById('pCv'),tick:document.getElementById('pTick'),pct:document.getElementById('pPct'),c1:'#ff2d78',c2:'#ff8cb0'},
+  {knob:document.getElementById('rKnob'),cv:document.getElementById('rCv'),tick:document.getElementById('rTick'),pct:document.getElementById('rPct'),c1:'#ffb800',c2:'#ff6b00'},
+];
+const START = Math.PI * .75;   // 135° from 3-oclock = 7:30 position
+const SWEEP = Math.PI * 1.5;   // 270° arc
+
+function drawDial(cv, v, c1, c2){
+  const dpr = devicePixelRatio || 1;
+  const W = cv.offsetWidth, H = cv.offsetHeight;
+  if(!W || !H) return;
+  cv.width = W * dpr; cv.height = H * dpr;
+  const ctx = cv.getContext('2d');
+  ctx.scale(dpr, dpr);
+  const cx = W/2, cy = H/2, r = Math.min(W,H)/2 - 6, lw = 6;
+
+  // background track
+  ctx.beginPath(); ctx.arc(cx,cy,r,START,START+SWEEP);
+  ctx.strokeStyle = 'rgba(255,255,255,.07)'; ctx.lineWidth = lw; ctx.lineCap = 'round'; ctx.stroke();
+
+  // value arc (vol 0-2 normalised to 0-1 for arc)
+  const vn = Math.min(v/2, 1);
+  if(vn > 0.005){
+    const g = ctx.createLinearGradient(cx-r, cy+r, cx+r, cy-r);
+    g.addColorStop(0, c1); g.addColorStop(1, c2);
+    ctx.beginPath(); ctx.arc(cx,cy,r,START,START+vn*SWEEP);
+    ctx.strokeStyle = g; ctx.lineWidth = lw; ctx.lineCap = 'round';
+    ctx.shadowColor = c1; ctx.shadowBlur = 14; ctx.stroke(); ctx.shadowBlur = 0;
+  }
+
+  // tick marks
+  for(let i=0; i<=20; i++){
+    const ang = START + (i/20)*SWEEP;
+    const vn2 = Math.min(vol/2, 1);
+    const r1 = r+6, r2 = r+(i%5===0?13:9);
+    ctx.beginPath();
+    ctx.moveTo(cx+Math.cos(ang)*r1, cy+Math.sin(ang)*r1);
+    ctx.lineTo(cx+Math.cos(ang)*r2, cy+Math.sin(ang)*r2);
+    ctx.strokeStyle = i/20 <= vn2 ? c1+'bb' : 'rgba(255,255,255,.07)';
+    ctx.lineWidth = i%5===0 ? 2 : 1; ctx.lineCap = 'round'; ctx.stroke();
+  }
+}
+
+function updateDial(d, v){
+  const vn = Math.min(v/2, 1);
+  d.tick.style.transform = `translateX(-50%) rotate(${-135 + vn*270}deg)`;
+  d.pct.textContent = Math.round(v*100) + '%';
+  drawDial(d.cv, v, d.c1, d.c2);
+}
+
+function redrawAll(){ DIALS.forEach(d => updateDial(d, vol)); }
+
+// Drag to set volume
+DIALS.forEach(d => {
+  let sy = 0, sv = 0, drag = false;
+  d.knob.addEventListener('mousedown', e => { sy = e.clientY; sv = vol; drag = true; e.preventDefault(); });
+  window.addEventListener('mousemove', e => { if(drag) applyVol(sv + (sy - e.clientY) / 160); });
+  window.addEventListener('mouseup', () => { drag = false; });
+  d.knob.addEventListener('touchstart', e => { sy = e.touches[0].clientY; sv = vol; drag = true; }, {passive:true});
+  window.addEventListener('touchmove', e => { if(drag) applyVol(sv + (sy - e.touches[0].clientY) / 160); }, {passive:true});
+  window.addEventListener('touchend', () => { drag = false; });
+});
+
+// Volume pills (music page)
+document.querySelectorAll('.vp[data-v]').forEach(p => {
+  p.addEventListener('click', () => {
+    applyVol(parseFloat(p.dataset.v));
+    document.querySelectorAll('.vp').forEach(x => x.classList.remove('on'));
+    p.classList.add('on');
+  });
+});
+
+setTimeout(redrawAll, 80);
+window.addEventListener('resize', redrawAll);
+
+/* ── UTILS ── */
+function esc(s){ const d = document.createElement('div'); d.textContent = s||''; return d.innerHTML; }
+let toastTimer;
+function toast(msg, err=false){
+  const el = document.getElementById('toast');
+  el.textContent = msg; el.className = 'on' + (err ? ' err' : '');
+  clearTimeout(toastTimer); toastTimer = setTimeout(() => el.className = '', 2800);
+}
+document.addEventListener('keydown', e => {
+  if(e.target.tagName === 'INPUT') return;
+  if(e.code === 'Space'){ e.preventDefault(); togglePlay(); }
+});
+</script>
+</body>
+</html>
