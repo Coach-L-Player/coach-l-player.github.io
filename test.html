@@ -1,0 +1,274 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>Coach L — Stream Tester</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+body{background:#05010e;color:#b8d0e8;font-family:'Segoe UI',Arial,sans-serif;padding:14px;min-height:100vh}
+h1{font-size:1rem;color:#00f5ff;letter-spacing:3px;text-transform:uppercase;margin-bottom:3px}
+.sub{font-size:.65rem;color:#3a5870;margin-bottom:8px;letter-spacing:1px}
+.note{font-size:.65rem;color:#ffb800;background:rgba(255,184,0,.08);border:1px solid rgba(255,184,0,.2);
+  border-radius:5px;padding:8px 10px;margin-bottom:12px;line-height:1.6}
+#startBtn{width:100%;padding:14px;background:transparent;border:2px solid #00f5ff;color:#00f5ff;
+  font-size:.9rem;font-weight:700;letter-spacing:3px;text-transform:uppercase;border-radius:8px;
+  cursor:pointer;margin-bottom:14px}
+#startBtn:active{background:#00f5ff;color:#000}
+#startBtn:disabled{border-color:#1a3040;color:#1a3040;cursor:default}
+#progress{font-size:.65rem;color:#3a5870;margin-bottom:10px;letter-spacing:1px;min-height:16px}
+#summary{display:none;padding:10px 12px;border-radius:6px;margin-bottom:12px;
+  background:rgba(0,245,255,.06);border:1px solid rgba(0,245,255,.2);font-size:.75rem}
+#summary span{display:block;margin:3px 0}
+.ok-c{color:#00ff88}.fail-c{color:#ff2d78}.warn-c{color:#ffb800}
+.row{display:flex;align-items:center;gap:10px;padding:9px 11px;border-radius:6px;
+  border:1px solid rgba(255,255,255,.06);background:rgba(255,255,255,.03);margin-bottom:5px}
+.row.ok{border-color:rgba(0,255,136,.3);background:rgba(0,255,136,.05)}
+.row.fail{border-color:rgba(255,45,120,.3);background:rgba(255,45,120,.05)}
+.row.warn{border-color:rgba(255,184,0,.25);background:rgba(255,184,0,.04)}
+.icon{font-size:1rem;flex-shrink:0;width:22px;text-align:center}
+.info{flex:1;min-width:0}
+.sname{font-size:.78rem;font-weight:700;color:#fff;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.smeta{font-size:.52rem;color:#3a5870;letter-spacing:1px}
+.badge{flex-shrink:0;font-size:.58rem;font-weight:700;padding:3px 7px;border-radius:3px;
+  letter-spacing:1px;min-width:52px;text-align:center}
+.badge.ok{background:rgba(0,255,136,.15);color:#00ff88}
+.badge.fail{background:rgba(255,45,120,.15);color:#ff2d78}
+.badge.warn{background:rgba(255,184,0,.12);color:#ffb800}
+.badge.blocked{background:rgba(155,89,255,.15);color:#9b59ff}
+.badge.pending{background:rgba(255,255,255,.04);color:#2a4050}
+.badge.testing{background:rgba(0,245,255,.1);color:#00f5ff}
+.row.blocked{border-color:rgba(155,89,255,.25);background:rgba(155,89,255,.04)}
+.spin{display:inline-block;animation:sp .7s linear infinite}
+@keyframes sp{to{transform:rotate(360deg)}}
+</style>
+</head>
+<body>
+<h1>&#9835; Stream Tester</h1>
+<div class="sub">COACH L PLAYER · STATION HEALTH CHECK</div>
+<div class="note">
+  ⚠️ <strong>Must be opened from coach-l-player.github.io/test.html</strong><br>
+  Upload this file to your GitHub repo first, then open it there.<br>
+  Running from there = same CORS rules as your player.
+</div>
+<button id="startBtn">&#9654; TAP TO START TEST</button>
+<div id="progress"></div>
+<div id="summary"></div>
+<div id="list"></div>
+<script>
+var ALL=[
+  {name:'Coach L Radio',  cat:'Coach L',  icon:'🎙️',url:'https://coach-l-radio.duckdns.org/listen/coach-l-radio/radio.mp3'},
+  {name:'5FM',            cat:'SA',       icon:'🇿🇦',url:'https://stream.zeno.fm/r0zy0o6v958uv'},
+  {name:'Jacaranda FM',  cat:'SA',       icon:'🇿🇦',url:'https://streams.jacarandafm.com/jacarandafm'},
+  {name:'Kaya FM',       cat:'SA',       icon:'🇿🇦',url:'https://stream.zeno.fm/2wvthp7sq28uv'},
+  {name:'East Coast R',  cat:'SA',       icon:'🇿🇦',url:'https://stream.zeno.fm/yvvuet3kb28uv'},
+  {name:'Radio 702',     cat:'SA',       icon:'🇿🇦',url:'https://stream.zeno.fm/s9gfbqnvf28uv'},
+  {name:'Metro FM',      cat:'SA',       icon:'🇿🇦',url:'https://stream.zeno.fm/7p4v5c6ya28uv'},
+  {name:'KFM 94.5',      cat:'SA',       icon:'🇿🇦',url:'https://stream.zeno.fm/0s8wnk5w428uv'},
+  {name:'CapeTalk',      cat:'SA',       icon:'🇿🇦',url:'https://stream.zeno.fm/9wq6bx3s9m8uv'},
+  {name:'RSG',           cat:'SA',       icon:'🇿🇦',url:'https://stream.zeno.fm/y3bkrq3n9m8uv'},
+  {name:'SAfm',          cat:'SA',       icon:'🇿🇦',url:'https://stream.zeno.fm/n5k3rt2p9m8uv'},
+  {name:'Ukhozi FM',     cat:'SA',       icon:'🇿🇦',url:'https://stream.zeno.fm/3x8mzfpk9m8uv'},
+  {name:'Lesedi FM',     cat:'SA',       icon:'🇿🇦',url:'https://stream.zeno.fm/lesedi-fm'},
+  {name:'Umhlobo Wenene',cat:'SA',       icon:'🇿🇦',url:'https://stream.zeno.fm/umhlobo-wenene'},
+  {name:'Motsweding FM', cat:'SA',       icon:'🇿🇦',url:'https://stream.zeno.fm/motsweding-fm'},
+  {name:'Thobela FM',    cat:'SA',       icon:'🇿🇦',url:'https://stream.zeno.fm/thobela-fm'},
+  {name:'Power FM',      cat:'SA',       icon:'🇿🇦',url:'https://stream.zeno.fm/powerfm987'},
+  {name:'Hot 91.9',      cat:'SA',       icon:'🇿🇦',url:'https://stream.zeno.fm/hot919fm'},
+  {name:'K-LOVE',        cat:'Gospel',   icon:'✝️', url:'https://maestro.emfcdn.com/stream_for/k-love/web/aac'},
+  {name:'Air1 Radio',    cat:'Gospel',   icon:'✝️', url:'https://maestro.emfcdn.com/stream_for/air1/web/aac'},
+  {name:'Gospel Radio',  cat:'Gospel',   icon:'🙏', url:'https://stream.zeno.fm/2jgmr7q1948uv'},
+  {name:'Spirit Radio',  cat:'Gospel',   icon:'🙏', url:'https://listen.spiritradio.ie/spirit'},
+  {name:'JOY 1027',      cat:'Gospel',   icon:'✨', url:'https://stream.zeno.fm/b8mmvk3s9m8uv'},
+  {name:'UCB Africa',    cat:'Gospel',   icon:'✝️', url:'https://stream.zeno.fm/ucbafrica'},
+  {name:'Rhema FM',      cat:'Gospel',   icon:'🙏', url:'https://stream.zeno.fm/rhemafm'},
+  {name:'BBC World',     cat:'UK',       icon:'🇬🇧',url:'https://stream.live.vc.bbcmedia.co.uk/bbc_world_service'},
+  {name:'BBC Radio 1',   cat:'UK',       icon:'🇬🇧',url:'https://stream.live.vc.bbcmedia.co.uk/bbc_radio_one'},
+  {name:'BBC Radio 2',   cat:'UK',       icon:'🇬🇧',url:'https://stream.live.vc.bbcmedia.co.uk/bbc_radio_two'},
+  {name:'BBC Radio 4',   cat:'UK',       icon:'🇬🇧',url:'https://stream.live.vc.bbcmedia.co.uk/bbc_radio_fourfm'},
+  {name:'BBC Radio 5',   cat:'UK',       icon:'🇬🇧',url:'https://stream.live.vc.bbcmedia.co.uk/bbc_radio_five_live'},
+  {name:'Capital FM',    cat:'UK',       icon:'🇬🇧',url:'https://media-ice.musicradio.com/CapitalMP3'},
+  {name:'Heart UK',      cat:'UK',       icon:'🇬🇧',url:'https://media-ice.musicradio.com/HeartMP3'},
+  {name:'Smooth Radio',  cat:'UK',       icon:'🇬🇧',url:'https://media-ice.musicradio.com/SmoothMP3'},
+  {name:'talkSPORT',     cat:'UK',       icon:'🇬🇧',url:'https://radio.talksport.com/stream'},
+  {name:'NPR News',      cat:'US',       icon:'🇺🇸',url:'https://npr-ice.streamguys1.com/live.mp3'},
+  {name:'KCRW',          cat:'US',       icon:'🇺🇸',url:'https://kcrw.streamguys1.com/kcrw_music.mp3'},
+  {name:'WNYC FM',       cat:'US',       icon:'🇺🇸',url:'https://fm939.wnyc.org/wnycfm.aac'},
+  {name:'Classical KUSC',cat:'US',       icon:'🇺🇸',url:'https://kusc.streamguys1.com/kusc.mp3'},
+  {name:'Triple J',      cat:'AUS',      icon:'🇦🇺',url:'https://live-radio01.mediahubaustralia.com/2TJW/mp3/'},
+  {name:'ABC News AUS',  cat:'AUS',      icon:'🇦🇺',url:'https://live-radio01.mediahubaustralia.com/2PBW/mp3/'},
+  {name:'ABC Radio Nat.',cat:'AUS',      icon:'🇦🇺',url:'https://live-radio01.mediahubaustralia.com/2RNW/mp3/'},
+  {name:'DW Radio',      cat:'World',    icon:'🌍', url:'https://icecast.dw.com/dw/english/mp3_128'},
+  {name:'France Inter',  cat:'World',    icon:'🇫🇷',url:'https://icecast.radiofrance.fr/franceinter-lofi.mp3'},
+  {name:'Swiss Jazz',    cat:'World',    icon:'🇨🇭',url:'https://stream.radioswissjazz.ch/web/mp3_128'},
+  {name:'Swiss Classic', cat:'World',    icon:'🇨🇭',url:'https://stream.radioswissclassic.ch/web/mp3_128'},
+  {name:'Radio NZ',      cat:'World',    icon:'🇳🇿',url:'https://rnz-ice.streamguys1.com/national.mp3'},
+  {name:'RFI English',   cat:'World',    icon:'🇫🇷',url:'https://live.rfienglish.com/rfienglish.mp3'},
+  {name:'VOA News',      cat:'World',    icon:'🌍', url:'https://playerservices.streamtheworld.com/api/livestream-redirect/VOA_NEWS_192.mp3'},
+  {name:'SomaFM Groove', cat:'Music',    icon:'🎧', url:'https://ice6.somafm.com/groovesalad-128-mp3'},
+  {name:'SomaFM Indie',  cat:'Music',    icon:'🎸', url:'https://ice6.somafm.com/indiepop-128-mp3'},
+  {name:'Drone Zone',    cat:'Music',    icon:'🌊', url:'https://ice6.somafm.com/dronezone-128-mp3'},
+  {name:'Secret Agent',  cat:'Music',    icon:'🕵️',url:'https://ice6.somafm.com/secretagent-128-mp3'},
+  {name:'Ill Street',    cat:'Music',    icon:'🎤', url:'https://ice2.somafm.com/illstreet-128-mp3'},
+  {name:'Lush',          cat:'Music',    icon:'🌿', url:'https://ice6.somafm.com/lush-128-mp3'},
+  {name:'Covers',        cat:'Music',    icon:'🎼', url:'https://ice2.somafm.com/covers-128-mp3'},
+  {name:'Folk Forward',  cat:'Music',    icon:'🪕', url:'https://ice4.somafm.com/folkfwd-128-mp3'},
+  {name:'Metal Detector',cat:'Music',    icon:'🤘', url:'https://ice6.somafm.com/metal-128-mp3'},
+  {name:'Radio Paradise',cat:'Music',    icon:'🌈', url:'https://stream.radioparadise.com/mp3-192'},
+  {name:'RP Mellow',     cat:'Music',    icon:'🌅', url:'https://stream.radioparadise.com/mellow-192'},
+  {name:'RP Rock',       cat:'Music',    icon:'🎸', url:'https://stream.radioparadise.com/rock-192'},
+  {name:'Dance Wave',    cat:'Music',    icon:'💃', url:'https://dancewave.online/dance.mp3'},
+  {name:'WFMU',          cat:'Community',icon:'📻', url:'https://stream0.wfmu.org/freeform-128k'},
+  {name:'WXPN',          cat:'Community',icon:'🎶', url:'https://wxpn.xpn.org/xpnmp3high'},
+  {name:'Bush Radio',    cat:'Community',icon:'📻', url:'https://iono.fm/stream/10'},
+  {name:'Radio 786',     cat:'Community',icon:'🕌', url:'https://stream.zeno.fm/t785b2rjk28uv'},
+  {name:'VOW FM',        cat:'Uni',      icon:'🎓', url:'https://iono.fm/stream/101'},
+  {name:'CUT FM',        cat:'Uni',      icon:'🎓', url:'https://iono.fm/stream/154'},
+  {name:'Tuks FM',       cat:'Uni',      icon:'🎓', url:'https://stream.zeno.fm/tuksfm1072uv'},
+  {name:'WKCR',          cat:'Uni',      icon:'🎷', url:'https://wkcr.streamguys1.com/live.mp3'},
+  {name:'KEXP',          cat:'Uni',      icon:'🎶', url:'https://kexp-mp3-128.streamguys1.com/kexp128.mp3'},
+  {name:'Afrobeats',     cat:'Genre',    icon:'🎵', url:'https://stream.zeno.fm/0r0xa792kwzuv'},
+  {name:'Gospel Stream', cat:'Genre',    icon:'🙏', url:'https://stream.zeno.fm/yn65fsaurfhvv'},
+  {name:'Lo-Fi',         cat:'Genre',    icon:'📚', url:'https://streams.ilovemusic.de/iloveradio17.mp3'},
+  {name:'Electronic',    cat:'Genre',    icon:'🎧', url:'https://ice4.somafm.com/u80s-128-mp3'},
+  {name:'R&B',           cat:'Genre',    icon:'🌹', url:'https://stream.zeno.fm/4d63qr0r5rhvv'},
+  {name:'Reggae',        cat:'Genre',    icon:'🟢', url:'https://stream.zeno.fm/rbwqr2m8148uv'},
+  {name:'Pop Hits',      cat:'Genre',    icon:'⭐', url:'https://stream.zeno.fm/n9g7e1hx8hzuv'},
+  {name:'Country',       cat:'Genre',    icon:'🤠', url:'https://stream.zeno.fm/rq89p1b5pqouv'},
+  {name:'Latin',         cat:'Genre',    icon:'💃', url:'https://stream.zeno.fm/syohmp1b5qouv'},
+];
+
+var results={},current=0;
+var audio=new Audio();
+/* Same proxy as the player — tells us if a station is CORS-blocked vs truly dead */
+var PROXY='https://coach-l-proxy.duckdns.org:8443/';
+
+function renderList(){
+  var h='';
+  for(var i=0;i<ALL.length;i++){
+    var s=ALL[i];
+    h+='<div class="row" id="row'+i+'">'
+      +'<div class="icon">'+s.icon+'</div>'
+      +'<div class="info"><div class="sname">'+s.name+'</div><div class="smeta">'+s.cat+'</div></div>'
+      +'<div class="badge pending" id="badge'+i+'">—</div>'
+      +'</div>';
+  }
+  document.getElementById('list').innerHTML=h;
+}
+
+function setRow(i,cls,label){
+  var r=document.getElementById('row'+i),b=document.getElementById('badge'+i);
+  if(r)r.className='row '+cls;
+  if(b){b.className='badge '+cls;b.innerHTML=label;}
+}
+
+function testNext(){
+  if(current>=ALL.length){finish();return;}
+  var s=ALL[current],i=current;
+  document.getElementById('progress').textContent='('+(i+1)+'/'+ALL.length+') '+s.name+'…';
+  setRow(i,'testing','<span class="spin">↻</span>');
+  audio.pause();
+  try{audio.src='';}catch(e){}
+  var done=false;
+
+  /* — UNSTABLE: starts but takes too long — */
+  var t=setTimeout(function(){
+    if(done)return;done=true;
+    results[s.name]='UNSTABLE';setRow(i,'warn','⚠️ UNSTABLE');
+    current++;testNext();
+  },8000);
+
+  /* — Proxy second-pass: distinguishes CORS-BLOCKED from truly DEAD — */
+  function tryProxy(){
+    var pa=new Audio(),pd=false;
+    var pt=setTimeout(function(){
+      if(pd)return;pd=true;try{pa.src='';}catch(e){}
+      results[s.name]='DEAD';setRow(i,'fail','❌ DEAD');
+      current++;testNext();
+    },6000);
+    pa.onerror=function(){
+      if(pd)return;pd=true;clearTimeout(pt);try{pa.src='';}catch(e){}
+      results[s.name]='DEAD';setRow(i,'fail','❌ DEAD');
+      current++;testNext();
+    };
+    pa.onplaying=function(){
+      if(pd)return;pd=true;clearTimeout(pt);pa.pause();try{pa.src='';}catch(e){}
+      results[s.name]='BLOCKED';setRow(i,'blocked','🚫 BLOCKED');
+      current++;testNext();
+    };
+    try{
+      pa.src=PROXY+encodeURIComponent(s.url);pa.load();
+      pa.play().catch(function(){
+        if(pd)return;pd=true;clearTimeout(pt);
+        results[s.name]='DEAD';setRow(i,'fail','❌ DEAD');
+        current++;testNext();
+      });
+    }catch(e){
+      if(pd)return;pd=true;clearTimeout(pt);
+      results[s.name]='DEAD';setRow(i,'fail','❌ DEAD');
+      current++;testNext();
+    }
+  }
+
+  audio.onerror=function(){
+    if(done)return;done=true;clearTimeout(t);
+    /* Error on direct → check via proxy to classify */
+    tryProxy();
+  };
+  audio.onplaying=function(){
+    if(done)return;done=true;clearTimeout(t);
+    results[s.name]='OK';setRow(i,'ok','✅ LIVE');
+    audio.pause();current++;
+    setTimeout(testNext,200);
+  };
+
+  try{
+    audio.src=s.url;audio.load();
+    audio.play().catch(function(err){
+      if(done)return;done=true;clearTimeout(t);
+      if(err&&err.name==='NotAllowedError'){
+        /* Browser blocked autoplay — not a stream issue, skip */
+        results[s.name]='UNSTABLE';setRow(i,'warn','⚠️ UNSTABLE');
+        current++;testNext();
+      }else{
+        tryProxy();
+      }
+    });
+  }catch(e){
+    if(done)return;done=true;clearTimeout(t);
+    results[s.name]='DEAD';setRow(i,'fail','❌ DEAD');
+    current++;testNext();
+  }
+}
+
+function finish(){
+  var ok=0,blocked=0,dead=0,unstable=0;
+  for(var k in results){
+    if(results[k]==='OK')ok++;
+    else if(results[k]==='BLOCKED')blocked++;
+    else if(results[k]==='DEAD')dead++;
+    else unstable++;
+  }
+  document.getElementById('progress').textContent='Done!';
+  var el=document.getElementById('summary');
+  el.style.display='block';
+  el.innerHTML=
+    '<span class="ok-c">✅ Live (direct): '+ok+'</span>'+
+    '<span style="color:#9b59ff">🚫 CORS-blocked (works via proxy): '+blocked+'</span>'+
+    '<span class="fail-c">❌ Dead (truly offline): '+dead+'</span>'+
+    '<span class="warn-c">⚠️ Unstable / Timeout: '+unstable+'</span>'+
+    '<span style="color:#3a5870;font-size:.6rem;display:block;margin-top:8px">BLOCKED stations work in the player (via proxy). Only ❌ DEAD stations need replacing.</span>';
+  document.getElementById('startBtn').textContent='▶ RUN AGAIN';
+  document.getElementById('startBtn').disabled=false;
+}
+
+document.getElementById('startBtn').addEventListener('click',function(){
+  current=0;results={};
+  this.disabled=true;this.textContent='Testing… please wait';
+  document.getElementById('summary').style.display='none';
+  renderList();testNext();
+});
+renderList();
+</script>
+</body>
+</html>
