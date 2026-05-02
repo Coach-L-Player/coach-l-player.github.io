@@ -1,0 +1,294 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>Coach L — Stream & Podcast Tester</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+body{background:#05010e;color:#b8d0e8;font-family:'Segoe UI',Arial,sans-serif;padding:14px;min-height:100vh}
+h1{font-size:1rem;color:#00f5ff;letter-spacing:3px;text-transform:uppercase;margin-bottom:3px}
+.sub{font-size:.65rem;color:#3a5870;margin-bottom:8px;letter-spacing:1px}
+.note{font-size:.65rem;color:#ffb800;background:rgba(255,184,0,.08);border:1px solid rgba(255,184,0,.2);border-radius:5px;padding:8px 10px;margin-bottom:10px;line-height:1.6}
+.tabs{display:flex;gap:6px;margin-bottom:12px}
+.tab{flex:1;padding:10px 4px;text-align:center;font-size:.7rem;font-weight:700;letter-spacing:2px;text-transform:uppercase;border:1px solid rgba(255,255,255,.1);border-radius:6px;cursor:pointer;color:#3a5870;background:rgba(255,255,255,.02)}
+.tab.on{border-color:#00f5ff;color:#00f5ff;background:rgba(0,245,255,.06)}
+#startBtn{width:100%;padding:13px;background:transparent;border:2px solid #00f5ff;color:#00f5ff;font-size:.85rem;font-weight:700;letter-spacing:3px;text-transform:uppercase;border-radius:8px;cursor:pointer;margin-bottom:12px}
+#startBtn:active{background:#00f5ff;color:#000}
+#startBtn:disabled{border-color:#1a3040;color:#1a3040;cursor:default}
+#progress{font-size:.65rem;color:#3a5870;margin-bottom:8px;letter-spacing:1px;min-height:16px}
+#summary{display:none;padding:10px 12px;border-radius:6px;margin-bottom:10px;background:rgba(0,245,255,.05);border:1px solid rgba(0,245,255,.18);font-size:.75rem}
+#summary span{display:block;margin:3px 0}
+.ok-c{color:#00ff88}.fail-c{color:#ff2d78}.warn-c{color:#ffb800}
+.row{display:flex;align-items:center;gap:10px;padding:9px 11px;border-radius:6px;border:1px solid rgba(255,255,255,.06);background:rgba(255,255,255,.03);margin-bottom:5px}
+.row.ok{border-color:rgba(0,255,136,.3);background:rgba(0,255,136,.05)}
+.row.fail{border-color:rgba(255,45,120,.3);background:rgba(255,45,120,.05)}
+.row.warn{border-color:rgba(255,184,0,.25);background:rgba(255,184,0,.04)}
+.icon{font-size:1rem;flex-shrink:0;width:22px;text-align:center}
+.info{flex:1;min-width:0}
+.sname{font-size:.78rem;font-weight:700;color:#fff;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.smeta{font-size:.52rem;color:#3a5870;letter-spacing:1px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.badge{flex-shrink:0;font-size:.58rem;font-weight:700;padding:3px 7px;border-radius:3px;letter-spacing:1px;min-width:52px;text-align:center}
+.badge.ok{background:rgba(0,255,136,.15);color:#00ff88}
+.badge.fail{background:rgba(255,45,120,.15);color:#ff2d78}
+.badge.warn{background:rgba(255,184,0,.12);color:#ffb800}
+.badge.pending{background:rgba(255,255,255,.04);color:#2a4050}
+.badge.testing{background:rgba(0,245,255,.1);color:#00f5ff}
+.spin{display:inline-block;animation:sp .7s linear infinite}
+@keyframes sp{to{transform:rotate(360deg)}}
+.section-hdr{font-size:.6rem;letter-spacing:3px;color:#3a5870;text-transform:uppercase;padding:10px 0 6px;border-bottom:1px solid rgba(255,255,255,.05);margin-bottom:6px;margin-top:4px}
+</style>
+</head>
+<body>
+<h1>&#9835; Stream & Podcast Tester</h1>
+<div class="sub">COACH L PLAYER · LIVE HEALTH CHECK</div>
+<div class="note" id="noteBox">
+  ⚠️ Loading data from player… open this at <strong>coach-l-player.github.io/test.html</strong>
+</div>
+
+<div class="tabs">
+  <div class="tab on" data-t="radio">📻 Radio</div>
+  <div class="tab" data-t="music">🎵 Music</div>
+  <div class="tab" data-t="podcast">🎙️ Podcasts</div>
+  <div class="tab" data-t="all">★ All</div>
+</div>
+
+<button id="startBtn" disabled>Loading…</button>
+<div id="progress"></div>
+<div id="summary"></div>
+<div id="list"></div>
+
+<script>
+/* ── State ── */
+var ALL_STATIONS=[], MUSIC=[], PODS=[];
+var mode='radio';
+var results={}, current=0, running=false;
+var aud=new Audio();
+
+/* ── Tab switching ── */
+var tabs=document.querySelectorAll('.tab');
+for(var ti=0;ti<tabs.length;ti++)(function(t){
+  t.addEventListener('click',function(){
+    if(running)return;
+    tabs.forEach(function(x){x.classList.remove('on');});
+    t.classList.add('on');
+    mode=t.getAttribute('data-t');
+    results={};current=0;
+    document.getElementById('summary').style.display='none';
+    document.getElementById('progress').textContent='';
+    renderList(getItems());
+  });
+})(tabs[ti]);
+
+/* ── Build item list for current mode ── */
+function getItems(){
+  if(mode==='radio') return ALL_STATIONS.map(function(s){return{icon:s.icon,name:s.name,sub:s.cat||'SA',url:s.url,type:'stream'};});
+  if(mode==='music') return MUSIC.map(function(s){return{icon:s.icon,name:s.name,sub:s.genre,url:s.url,type:'stream'};});
+  if(mode==='podcast') return PODS.filter(function(p){return!p.custom;}).map(function(p){return{icon:p.icon,name:p.name,sub:p.sub,url:p.rss,type:'podcast'};});
+  /* all */
+  var r=ALL_STATIONS.map(function(s){return{icon:s.icon,name:s.name,sub:'Radio · '+(s.cat||''),url:s.url,type:'stream'};});
+  var m=MUSIC.map(function(s){return{icon:s.icon,name:s.name,sub:'Music · '+s.genre,url:s.url,type:'stream'};});
+  var p=PODS.filter(function(x){return!x.custom;}).map(function(x){return{icon:x.icon,name:x.name,sub:'Podcast · '+x.sub,url:x.rss,type:'podcast'};});
+  return r.concat(m).concat(p);
+}
+
+/* ── Render rows ── */
+function renderList(items){
+  var h='';
+  var lastType='';
+  for(var i=0;i<items.length;i++){
+    var it=items[i];
+    if(mode==='all'&&it.type!==lastType){
+      lastType=it.type;
+      h+='<div class="section-hdr">'+(it.type==='stream'?'📻 Radio & Music':'🎙️ Podcasts')+'</div>';
+    }
+    var r=results[i];
+    h+='<div class="row '+(r?r.cls:'')+'" id="row'+i+'">'
+      +'<div class="icon">'+it.icon+'</div>'
+      +'<div class="info"><div class="sname">'+it.name+'</div><div class="smeta">'+it.sub+'</div></div>'
+      +'<div class="badge '+(r?r.cls:'pending')+'" id="badge'+i+'">'+(r?r.label:'—')+'</div>'
+      +'</div>';
+  }
+  document.getElementById('list').innerHTML=h;
+}
+
+function setRow(i,cls,label){
+  var r=document.getElementById('row'+i),b=document.getElementById('badge'+i);
+  if(r)r.className='row '+cls;
+  if(b){b.className='badge '+cls;b.innerHTML=label;}
+}
+
+/* ── Test stream ── */
+function testStream(item,i,done){
+  aud.pause();try{aud.src='';}catch(e){}
+  var finished=false;
+  var t=setTimeout(function(){
+    if(finished)return;finished=true;
+    results[i]={cls:'warn',label:'TIMEOUT'};setRow(i,'warn','TIMEOUT');done();
+  },8000);
+  aud.onerror=function(){
+    if(finished)return;finished=true;clearTimeout(t);
+    results[i]={cls:'fail',label:'ERROR'};setRow(i,'fail','ERROR');done();
+  };
+  aud.onplaying=function(){
+    if(finished)return;finished=true;clearTimeout(t);
+    results[i]={cls:'ok',label:'✅ OK'};setRow(i,'ok','✅ OK');
+    aud.pause();done();
+  };
+  try{
+    aud.src=item.url;aud.load();
+    aud.play().catch(function(err){
+      if(finished)return;finished=true;clearTimeout(t);
+      var lbl=err&&err.name==='NotAllowedError'?'BLOCKED':'ERROR';
+      results[i]={cls:lbl==='BLOCKED'?'warn':'fail',label:lbl};
+      setRow(i,results[i].cls,lbl);done();
+    });
+  }catch(e){
+    if(finished)return;finished=true;clearTimeout(t);
+    results[i]={cls:'fail',label:'ERROR'};setRow(i,'fail','ERROR');done();
+  }
+}
+
+/* ── Test podcast RSS ── */
+function testPodcast(item,i,done){
+  var url='https://api.rss2json.com/v1/api.json?rss_url='+encodeURIComponent(item.url)+'&api_key=&count=1';
+  var finished=false;
+  var t=setTimeout(function(){
+    if(finished)return;finished=true;
+    results[i]={cls:'warn',label:'RSS SLOW'};setRow(i,'warn','RSS SLOW');done();
+  },12000);
+
+  fetch(url).then(function(res){return res.json();}).then(function(data){
+    if(finished)return;
+    if(data.status==='ok'&&data.items&&data.items.length>0){
+      var ep=data.items[0];
+      var audioUrl=ep.enclosure&&ep.enclosure.link?ep.enclosure.link:(ep.link||'');
+      if(audioUrl&&(audioUrl.includes('.mp3')||audioUrl.includes('.m4a')||audioUrl.includes('.ogg')||audioUrl.includes('audio'))){
+        finished=true;clearTimeout(t);
+        results[i]={cls:'ok',label:'✅ OK'};setRow(i,'ok','✅ OK');done();
+      }else{
+        finished=true;clearTimeout(t);
+        results[i]={cls:'warn',label:'NO AUDIO'};setRow(i,'warn','NO AUDIO');done();
+      }
+    }else{
+      /* fallback: try raw fetch */
+      fetchRSSDirect(item,i,t,finished,done,function(f){finished=f;});
+    }
+  }).catch(function(){
+    if(finished)return;
+    fetchRSSDirect(item,i,t,finished,done,function(f){finished=f;});
+  });
+}
+
+function fetchRSSDirect(item,i,t,finished,done,setF){
+  fetch(item.url).then(function(res){return res.text();}).then(function(txt){
+    if(finished)return;
+    var hasAudio=txt.includes('.mp3')||txt.includes('.m4a')||txt.includes('audio/');
+    setF(true);clearTimeout(t);
+    if(hasAudio){
+      results[i]={cls:'ok',label:'✅ RSS OK'};setRow(i,'ok','✅ RSS OK');
+    }else{
+      results[i]={cls:'warn',label:'NO AUDIO'};setRow(i,'warn','NO AUDIO');
+    }
+    done();
+  }).catch(function(){
+    if(finished)return;setF(true);clearTimeout(t);
+    results[i]={cls:'fail',label:'CORS/404'};setRow(i,'fail','CORS/404');done();
+  });
+}
+
+/* ── Main test loop ── */
+var items=[];
+function testNext(){
+  if(current>=items.length){finish();return;}
+  var item=items[current],i=current;
+  document.getElementById('progress').textContent='('+(i+1)+'/'+items.length+') '+item.name+'…';
+  setRow(i,'testing','<span class="spin">↻</span>');
+
+  function next(){current++;setTimeout(testNext,item.type==='stream'?200:100);}
+
+  if(item.type==='stream'){testStream(item,i,next);}
+  else{testPodcast(item,i,next);}
+}
+
+function finish(){
+  running=false;
+  var ok=0,fail=0,warn=0;
+  for(var k in results){
+    if(results[k].cls==='ok')ok++;
+    else if(results[k].cls==='fail')fail++;
+    else warn++;
+  }
+  document.getElementById('progress').textContent='Done!';
+  var s=document.getElementById('summary');s.style.display='block';
+  s.innerHTML='<span class="ok-c">✅ Working: '+ok+'</span>'
+    +'<span class="fail-c">❌ Dead / Error: '+fail+'</span>'
+    +'<span class="warn-c">⚠️ Slow / Blocked: '+warn+'</span>'
+    +'<span style="color:#3a5870;font-size:.6rem;display:block;margin-top:6px">Share screenshot with Claude to fix dead ones</span>';
+  var btn=document.getElementById('startBtn');
+  btn.textContent='▶ RUN AGAIN';btn.disabled=false;
+}
+
+document.getElementById('startBtn').addEventListener('click',function(){
+  if(running)return;
+  running=true;current=0;results={};
+  this.disabled=true;this.textContent='Testing…';
+  document.getElementById('summary').style.display='none';
+  items=getItems();
+  renderList(items);
+  testNext();
+});
+
+/* ── Load data from index.html (same origin) ── */
+function loadData(){
+  fetch('./index.html').then(function(r){return r.text();}).then(function(html){
+    try{
+      /* Extract MUSIC array */
+      var mMatch=html.match(/var MUSIC\s*=\s*(\[[\s\S]*?\]);/);
+      if(mMatch){try{eval('MUSIC='+mMatch[1]);}catch(e){}}
+      /* Extract PODS array */
+      var pMatch=html.match(/var PODS\s*=\s*(\[[\s\S]*?\]);/);
+      if(pMatch){try{eval('PODS='+pMatch[1]);}catch(e){}}
+      /* Extract ALL_STATIONS array */
+      var sMatch=html.match(/var ALL_STATIONS\s*=\s*(\[[\s\S]*?\]);/);
+      if(sMatch){try{eval('ALL_STATIONS='+sMatch[1]);}catch(e){}}
+      document.getElementById('noteBox').textContent='✅ Loaded '+ALL_STATIONS.length+' stations, '+MUSIC.length+' music streams, '+PODS.filter(function(p){return!p.custom;}).length+' podcasts from player';
+      document.getElementById('startBtn').textContent='▶ TAP TO START TEST';
+      document.getElementById('startBtn').disabled=false;
+      renderList(getItems());
+    }catch(e){
+      useFallback();
+    }
+  }).catch(function(){useFallback();});
+}
+
+function useFallback(){
+  document.getElementById('noteBox').textContent='⚠️ Could not load index.html — using built-in station list. Open from coach-l-player.github.io/test.html for live data.';
+  /* minimal hardcoded fallback so the tester still works standalone */
+  ALL_STATIONS=[
+    {name:'Coach L Radio',cat:'Coach L',icon:'🎙️',url:'https://coach-l-radio.duckdns.org/listen/coach-l-radio/radio.mp3'},
+    {name:'BBC World',cat:'UK',icon:'🇬🇧',url:'https://stream.live.vc.bbcmedia.co.uk/bbc_world_service'},
+    {name:'NPR News',cat:'US',icon:'🇺🇸',url:'https://npr-ice.streamguys1.com/live.mp3'},
+    {name:'Triple J',cat:'AUS',icon:'🇦🇺',url:'https://live-radio01.mediahubaustralia.com/2TJW/mp3/'},
+    {name:'SomaFM Groove',cat:'Music',icon:'🎧',url:'https://ice6.somafm.com/groovesalad-128-mp3'},
+    {name:'Radio Paradise',cat:'Music',icon:'🌈',url:'https://stream.radioparadise.com/mp3-192'},
+    {name:'Jacaranda FM',cat:'SA',icon:'🇿🇦',url:'https://edge.iono.fm/stream/33'},
+    {name:'5FM',cat:'SA',icon:'🇿🇦',url:'https://edge.iono.fm/stream/5'},
+    {name:'KEXP',cat:'Uni',icon:'🎶',url:'https://kexp-mp3-128.streamguys1.com/kexp128.mp3'},
+    {name:'WFMU',cat:'Community',icon:'📻',url:'https://stream0.wfmu.org/freeform-128k'}
+  ];
+  MUSIC=[{name:'Groove Salad',genre:'Ambient',icon:'🎧',url:'https://ice6.somafm.com/groovesalad-128-mp3'}];
+  PODS=[
+    {name:'MacG',sub:'Pod&Chill',icon:'🇿🇦',rss:'https://feeds.acast.com/public/shows/podcast-and-chill-with-macg'},
+    {name:'The Daily',sub:'NYT',icon:'📰',rss:'https://feeds.simplecast.com/54nAGcIl'},
+    {name:'TED Talks',sub:'Daily',icon:'💡',rss:'https://feeds.feedburner.com/TEDTalks_audio'}
+  ];
+  document.getElementById('startBtn').textContent='▶ TAP TO START TEST';
+  document.getElementById('startBtn').disabled=false;
+  renderList(getItems());
+}
+
+loadData();
+</script>
+</body>
+</html>
