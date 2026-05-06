@@ -149,13 +149,8 @@ input{-webkit-user-select:text;user-select:text}
   border-radius:50%;background:var(--grn);box-shadow:0 0 5px var(--grn);
   -webkit-animation:blink 1.3s ease-in-out infinite;animation:blink 1.3s ease-in-out infinite}
 .bg-btn.on .live-dot{display:block}
-/* ── Featured podcast highlight ── */
-.bg-btn.featured-pod{
-  border-color:rgba(255,200,50,.5);
-  box-shadow:0 0 8px rgba(255,200,50,.2);
-}
+.bg-btn.featured-pod{border-color:rgba(255,200,50,.5);box-shadow:0 0 8px rgba(255,200,50,.2)}
 .bg-btn.featured-pod .bn{color:#ffc832}
-
 @-webkit-keyframes blink{0%,100%{opacity:1}50%{opacity:.2}}
 @keyframes blink{0%,100%{opacity:1}50%{opacity:.2}}
 
@@ -853,8 +848,8 @@ var PODS = [
 
 
   /* ── 📖 African Stories ── */
-  {name:'Iinsomi ZesiXhosa', sub:'uBhontji noLahle',  icon:'📖', cat:'africa', rss:'https://media.rss.com/iintsomi-zesixhosa/feed.xml', featured:true},
-  {name:'Iinsomi ZesiXhosa', sub:'uBhontji noLahle',  icon:'📖', cat:'ytch',   rss:'https://media.rss.com/iintsomi-zesixhosa/feed.xml', featured:true},
+  {name:'Iinsomi ZesiXhosa', sub:'uMbotji noLahle',   icon:'📖', cat:'africa', rss:'https://media.rss.com/iintsomi-zesixhosa/feed.xml', featured:true},
+  {name:'Iinsomi ZesiXhosa', sub:'uMbotji noLahle',   icon:'📖', cat:'ytch',   rss:'https://media.rss.com/iintsomi-zesixhosa/feed.xml', featured:true},
   {name:'Bedtime Stories', sub:'African Tales',     icon:'🌙', cat:'africa', yt:'PLO9Lh1VWCFwtR-gYLIV6Otcuf6BUHsaqZ'},
   {name:"Naledi's Story",  sub:'Series',            icon:'⭐', cat:'africa', yt:'PLO9Lh1VWCFwsUJKsLo_YnmSmo84b9t8aP'},
   {name:'Zola Series',     sub:'Series',            icon:'🦁', cat:'africa', yt:'PLO9Lh1VWCFws-3orQb8y4cXF2-HVdlXym'},
@@ -1665,12 +1660,20 @@ function parseRSSXml(xml){
   var items=doc.querySelectorAll('item');
   var eps=[];
   function getAudioUrl(item){
+    /* 1. <enclosure> — RSS spec guarantees this is audio, accept any URL */
     var encs=item.getElementsByTagName('enclosure');
-    for(var ei=0;ei<encs.length;ei++){var eu=encs[ei].getAttribute('url');if(eu&&eu.startsWith('http'))return eu;}
+    for(var ei=0;ei<encs.length;ei++){
+      var eu=encs[ei].getAttribute('url');
+      var et=encs[ei].getAttribute('type')||'';
+      if(eu&&eu.startsWith('http')&&(et.includes('audio')||et===''||eu.includes('media.rss.com')))return eu;
+    }
+    /* 2. <media:content> */
     var meds=item.getElementsByTagName('media:content');
-    if(meds.length&&meds[0].getAttribute('url'))return meds[0].getAttribute('url');
+    for(var mi=0;mi<meds.length;mi++){var mu=meds[mi].getAttribute('url');if(mu&&mu.startsWith('http'))return mu;}
+    /* 3. Any attribute URL with audio extension */
     var all=item.getElementsByTagName('*');
     for(var ai=0;ai<all.length;ai++){var au=all[ai].getAttribute&&all[ai].getAttribute('url');if(au&&au.startsWith('http')&&(au.includes('.mp3')||au.includes('.m4a')||au.includes('.ogg')||au.includes('.aac')))return au;}
+    /* 4. Any http URL containing known audio CDN patterns */
     for(var bi=0;bi<all.length;bi++){var bu=all[bi].getAttribute&&all[bi].getAttribute('url');if(bu&&bu.startsWith('http'))return bu;}
     return '';
   }
@@ -1743,7 +1746,9 @@ function loadRSS(url,name,sub){
 
   /* ── FIRE ALL SIMULTANEOUSLY — first valid result wins, rest are ignored ── */
   var enc=encodeURIComponent(fetchUrl);
+  if(fetchUrl.includes('media.rss.com'))tryRss2json();
   tryXml('allorigins', 'https://api.allorigins.win/raw?url='+enc);
+  tryXml('toptal',     'https://www.toptal.com/developers/feed2json/raw?url='+enc);
   tryXml('corsproxy',  'https://corsproxy.io/?'+enc);
   tryXml('codetabs',   'https://api.codetabs.com/v1/proxy/?quest='+enc);
   tryXml('proxy',      'https://coach-l-proxy.duckdns.org:8443/'+enc);
